@@ -54,7 +54,9 @@ The workflow file is already created (`.github/workflows/deploy.yml`). It will:
 3. **Source**: Select **"GitHub Actions"**
 4. **Save**
 
-Your site will be live at: `https://YOUR_USERNAME.github.io/voltvoyage/`
+Your site will be live at: `https://YOUR_USERNAME.github.io/REPO_NAME/`
+
+**Important**: The `vite.config.js` has been configured with `base: '/car-rental-business/'` to match your repository name. If your repo name is different, update this value in `vite.config.js`.
 
 **Note**: After the first push, GitHub Actions will build and deploy. Check the "Actions" tab to see the deployment progress.
 
