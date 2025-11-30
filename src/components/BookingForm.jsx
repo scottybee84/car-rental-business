@@ -470,40 +470,59 @@ const BookingForm = () => {
           </div>
         </div>
       </div>
-      {showPricingModal && (
-        <div
-          className="pricing-modal-overlay"
-          onClick={() => setShowPricingModal(false)}
-        >
-          <div className="pricing-modal" onClick={(e) => e.stopPropagation()}>
-            <button
-              className="pricing-modal-close"
-              onClick={() => setShowPricingModal(false)}
-            >
-              ×
-            </button>
-            <h3 className="pricing-modal-title">How Pricing Works</h3>
-            <div className="pricing-modal-content">
-              <div className="pricing-modal-item">
-                <strong>1–6 days</strong> = Daily rate
+      {showPricingModal &&
+        createPortal(
+          <div
+            className="pricing-modal-overlay"
+            onClick={() => setShowPricingModal(false)}
+          >
+            <div className="pricing-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="pricing-modal-header">
+                <h3 className="pricing-modal-title">How Pricing Works</h3>
+                <button
+                  className="pricing-modal-close"
+                  onClick={() => setShowPricingModal(false)}
+                  aria-label="Close modal"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M18 6L6 18M6 6L18 18"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
               </div>
-              <div className="pricing-modal-item">
-                <strong>7–29 days</strong> = Weekly rate (20% off)
-              </div>
-              <div className="pricing-modal-item">
-                <strong>30+ days</strong> = Monthly rate (40% off)
-              </div>
-              <div className="pricing-modal-item">
-                <strong>Airport pickup/return fees</strong> = +€59 each
-              </div>
-              <div className="pricing-modal-item">
-                <strong>No hidden charges</strong> - What you see is what you
-                pay
+              <div className="pricing-modal-content">
+                <div className="pricing-modal-item">
+                  <strong>1–6 days</strong> = Daily rate
+                </div>
+                <div className="pricing-modal-item">
+                  <strong>7–29 days</strong> = Weekly rate (20% off)
+                </div>
+                <div className="pricing-modal-item">
+                  <strong>30+ days</strong> = Monthly rate (40% off)
+                </div>
+                <div className="pricing-modal-item">
+                  <strong>Airport pickup/return fees</strong> = +€59 each
+                </div>
+                <div className="pricing-modal-item">
+                  <strong>No hidden charges</strong> - What you see is what you
+                  pay
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
       {showAvailabilityModal &&
         createPortal(
           <div
