@@ -175,7 +175,12 @@ const Hero = () => {
                         <div className="slide-model-info">
                           <div className="slide-model-info-item no-gap">
                             <div className="small-text pure-text">
-                              <img src={usFlag} alt="United States Flag" width="36" height="19" />
+                              <img
+                                src={usFlag}
+                                alt="United States Flag"
+                                width="36"
+                                height="19"
+                              />
                               Made for U.S. Travelers
                             </div>
                             <p className="hero-sub-subline">
@@ -197,9 +202,6 @@ const Hero = () => {
                         <BookingForm />
                       </div>
                     </div>
-                  </div>
-                  <div className="hero-urgency-text">
-                    🔥 Now accepting early 2025 requests
                   </div>
                 </div>
               </div>
