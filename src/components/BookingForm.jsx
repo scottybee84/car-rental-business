@@ -374,7 +374,7 @@ const BookingForm = () => {
           </div>
 
           {/* Right Side - Pricing Calculator */}
-          <div className="pricing-calculator-side">
+          <div id="rates" className="pricing-calculator-side">
             <div className="pricing-calculator">
               <p className="pricing-includes-text">
                 All prices include Autopilot + English support + Simple charging
