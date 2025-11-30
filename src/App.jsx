@@ -1,27 +1,20 @@
-import Navbar from "./components/Navbar";
-import Hero from "./components/Hero";
-import About from "./components/About";
-import Models from "./components/Models";
-import ModelBrands from "./components/ModelBrands";
-import Benefits from "./components/Benefits";
-import Testimonials from "./components/Testimonials";
-import Blog from "./components/Blog";
-import Footer from "./components/Footer";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Impressum from "./pages/Impressum";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import "./App.css";
 
 function App() {
   return (
-    <div className="page-wrapper">
-      <Navbar />
-      <Hero />
-      <About />
-      <Models />
-      <ModelBrands />
-      <Benefits />
-      <Testimonials />
-      <Blog />
-      <Footer />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/impressum" element={<Impressum />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+      </Routes>
+    </Router>
   );
 }
 

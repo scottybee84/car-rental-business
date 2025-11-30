@@ -1,0 +1,93 @@
+.legal-page {
+  min-height: 100vh;
+  padding-top: 120px;
+  padding-bottom: 80px;
+  background-color: var(--colors--mist);
+}
+
+.legal-content {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: var(--colors--pure);
+  padding: 60px;
+  border-radius: var(--border-radius-sizes--large);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.legal-content h1 {
+  font-family: var(--font-families--title-font);
+  font-size: var(--_responsive---heading-sizes--h1);
+  color: var(--colors--abyss);
+  margin-bottom: 32px;
+}
+
+.legal-content h2 {
+  font-family: var(--font-families--title-font);
+  font-size: var(--_responsive---heading-sizes--h3);
+  color: var(--colors--abyss);
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+
+.legal-content h3 {
+  font-family: var(--font-families--title-font);
+  font-size: var(--_responsive---heading-sizes--h4);
+  color: var(--colors--abyss);
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+.legal-content p {
+  font-size: var(--_responsive---body-text-sizes--medium);
+  line-height: 1.8;
+  color: var(--colors--abyss);
+  margin-bottom: 16px;
+}
+
+.legal-content ul {
+  margin-left: 24px;
+  margin-bottom: 16px;
+}
+
+.legal-content li {
+  font-size: var(--_responsive---body-text-sizes--medium);
+  line-height: 1.8;
+  color: var(--colors--abyss);
+  margin-bottom: 8px;
+}
+
+.legal-content strong {
+  font-weight: 600;
+  color: var(--colors--abyss);
+}
+
+.legal-updated {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--colors--whisper);
+  font-size: var(--_responsive---body-text-sizes--small);
+  color: var(--colors--dusk);
+  font-style: italic;
+}
+
+@media screen and (max-width: 767px) {
+  .legal-page {
+    padding-top: 100px;
+    padding-bottom: 60px;
+  }
+
+  .legal-content {
+    padding: 40px 24px;
+    border-radius: var(--border-radius-sizes--medium);
+  }
+
+  .legal-content h1 {
+    font-size: var(--_responsive---heading-sizes--h2);
+    margin-bottom: 24px;
+  }
+
+  .legal-content h2 {
+    font-size: var(--_responsive---heading-sizes--h4);
+    margin-top: 24px;
+  }
+}
