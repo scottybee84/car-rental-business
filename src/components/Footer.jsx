@@ -158,12 +158,7 @@ const Footer = () => {
             </div>
           </div>
           <a href="/" className="footer-bottom w-inline-block">
-            <img 
-              src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/6832c55137cebb7393047738_logo-pure.svg" 
-              loading="eager" 
-              alt="Logo" 
-              className="footer-logo"
-            />
+            <span className="footer-logo-text">VOLTVOYAGE</span>
             <div className="footer-logo-gradient"></div>
           </a>
         </div>

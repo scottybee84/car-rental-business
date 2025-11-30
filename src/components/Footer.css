@@ -1,2 +1,13 @@
 /* Footer specific styles if needed */
 
+.footer-logo-text {
+  font-size: 24px;
+  font-weight: 600;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-decoration: none;
+  font-family: 'Lexend Deca', sans-serif;
+  display: block;
+}
+
