@@ -7,7 +7,7 @@ import "./App.css";
 
 function App() {
   return (
-    <Router>
+    <Router basename="/car-rental-business">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/impressum" element={<Impressum />} />
