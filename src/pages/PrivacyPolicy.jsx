@@ -70,7 +70,7 @@ const PrivacyPolicy = () => {
             <h2>6. Contact</h2>
             <p>
               For questions about data protection, please contact us at:
-              hello@voltvoyage.com
+              voyagesvolt@gmail.com
             </p>
 
             <p className="legal-updated">

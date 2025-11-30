@@ -1,7 +1,6 @@
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import TrustBadges from "../components/TrustBadges";
-import FinalCTA from "../components/FinalCTA";
 import Footer from "../components/Footer";
 
 const Home = () => {
@@ -10,11 +9,9 @@ const Home = () => {
       <Navbar />
       <Hero />
       <TrustBadges />
-      <FinalCTA />
       <Footer />
     </div>
   );
 };
 
 export default Home;
-

@@ -83,7 +83,7 @@ const TermsOfService = () => {
             <h2>9. Contact</h2>
             <p>
               For questions about these terms, please contact us at:
-              hello@voltvoyage.com
+              voyagesvolt@gmail.com
             </p>
 
             <p className="legal-updated">

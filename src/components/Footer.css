@@ -7,7 +7,47 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   text-decoration: none;
-  font-family: 'Orbitron', sans-serif;
+  font-family: "Orbitron", sans-serif;
   display: block;
 }
 
+.footer-divider {
+  width: 100%;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0;
+  padding: 0;
+}
+
+.footer-bottom-full-width {
+  width: 100%;
+  background-color: var(--colors--abyss);
+  padding-top: 32px;
+  padding-bottom: 32px;
+  margin-top: 0;
+}
+
+.footer-bottom-full-width .content-wrapper {
+  max-width: var(--content-wrapper-width--default);
+  padding-right: var(--_responsive---content-wrapper-padding--default);
+  padding-left: var(--_responsive---content-wrapper-padding--default);
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.footer-bottom-full-width .footer-info-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+@media screen and (max-width: 767px) {
+  .footer-bottom-full-width .footer-info-bottom {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}

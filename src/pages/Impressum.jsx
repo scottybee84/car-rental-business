@@ -15,21 +15,21 @@ const Impressum = () => {
             <p>
               VoltVoyage – Manu Fitz
               <br />
-              Hauptstraße 12
+              Braunstrasse 2-4
               <br />
-              64720 Michelstadt, Germany
+              Michelstadt, DE
             </p>
 
             <h2>Kontakt</h2>
-            <p>Email: hello@voltvoyage.com</p>
+            <p>Email: voyagesvolt@gmail.com</p>
 
             <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2>
             <p>
               Manu Fitz
               <br />
-              Hauptstraße 12
+              Braunstrasse 2-4
               <br />
-              64720 Michelstadt, Germany
+              Michelstadt, DE
             </p>
 
             <h2>Haftungsausschluss</h2>

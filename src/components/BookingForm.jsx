@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import emailjs from "@emailjs/browser";
 import "./BookingForm.css";
 
@@ -8,7 +9,8 @@ const EMAILJS_SERVICE_ID =
 const EMAILJS_TEMPLATE_ID =
   import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "YOUR_TEMPLATE_ID";
 const EMAILJS_CUSTOMER_TEMPLATE_ID =
-  import.meta.env.VITE_EMAILJS_CUSTOMER_TEMPLATE_ID || "YOUR_CUSTOMER_TEMPLATE_ID";
+  import.meta.env.VITE_EMAILJS_CUSTOMER_TEMPLATE_ID ||
+  "YOUR_CUSTOMER_TEMPLATE_ID";
 const EMAILJS_PUBLIC_KEY =
   import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
 
@@ -117,7 +119,7 @@ const BookingForm = () => {
         total_price: `€${pricing.total.toFixed(2)}`,
       };
 
-      // Send email to business (your email)
+      // Send email to business
       await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
@@ -502,156 +504,162 @@ const BookingForm = () => {
           </div>
         </div>
       )}
-      {showAvailabilityModal && (
-        <div
-          className="availability-modal-overlay"
-          onClick={() => setShowAvailabilityModal(false)}
-        >
+      {showAvailabilityModal &&
+        createPortal(
           <div
-            className="availability-modal"
-            onClick={(e) => e.stopPropagation()}
+            className="availability-modal-overlay"
+            onClick={() => setShowAvailabilityModal(false)}
           >
-            <div className="availability-modal-header">
-              <h3 className="availability-modal-title">Check Availability</h3>
-              <button
-                className="availability-modal-close"
-                onClick={() => setShowAvailabilityModal(false)}
-                aria-label="Close modal"
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M18 6L6 18M6 6L18 18"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div className="availability-modal-content">
-              <div className="availability-summary">
-                <h4 className="availability-summary-title">Rental Summary</h4>
-                <div className="availability-summary-details">
-                  <div className="availability-summary-item">
-                    <span className="availability-summary-label">Pickup:</span>
-                    <span className="availability-summary-value">
-                      {pickupDate} at {pickupLocation}
-                    </span>
-                  </div>
-                  <div className="availability-summary-item">
-                    <span className="availability-summary-label">Return:</span>
-                    <span className="availability-summary-value">
-                      {returnDate} at {returnLocation}
-                    </span>
-                  </div>
-                  <div className="availability-summary-item availability-summary-item-no-border">
-                    <span className="availability-summary-label">
-                      Duration:
-                    </span>
-                    <span className="availability-summary-value">
-                      {pricing.days} {pricing.days === 1 ? "day" : "days"}
-                    </span>
-                  </div>
-                  <div className="availability-summary-total">
-                    <span className="availability-summary-label">Total:</span>
-                    <span className="availability-summary-total-value">
-                      €{pricing.total.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <form
-                className="availability-contact-form"
-                onSubmit={handleContactSubmit}
-              >
-                <div className="availability-form-field">
-                  <label className="booking-label">NAME</label>
-                  <input
-                    type="text"
-                    name="name"
-                    className="booking-input"
-                    value={contactForm.name}
-                    onChange={handleContactChange}
-                    required
-                    placeholder="Your full name"
-                  />
-                </div>
-                <div className="availability-form-field">
-                  <label className="booking-label">EMAIL</label>
-                  <input
-                    type="email"
-                    name="email"
-                    className="booking-input"
-                    value={contactForm.email}
-                    onChange={handleContactChange}
-                    required
-                    placeholder="your.email@example.com"
-                  />
-                </div>
-                <div className="availability-form-field">
-                  <label className="booking-label">PHONE NUMBER</label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    className="booking-input"
-                    value={contactForm.phone}
-                    onChange={handleContactChange}
-                    required
-                    placeholder="+1 (555) 123-4567"
-                  />
-                </div>
-                <div className="availability-form-field">
-                  <label className="booking-label">MESSAGE (OPTIONAL)</label>
-                  <textarea
-                    name="message"
-                    className="booking-input booking-textarea"
-                    value={contactForm.message}
-                    onChange={handleContactChange}
-                    rows="4"
-                    placeholder="Any special requests or questions..."
-                  />
-                </div>
-                {submitStatus === "success" && (
-                  <div className="availability-form-success">
-                    Thank you! Your request has been submitted. We'll confirm
-                    availability within a few hours.
-                  </div>
-                )}
-                {submitStatus === "error" && (
-                  <div className="availability-form-error">
-                    There was an error submitting your request. Please try again
-                    or contact us directly.
-                  </div>
-                )}
+            <div
+              className="availability-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="availability-modal-header">
+                <h3 className="availability-modal-title">Check Availability</h3>
                 <button
-                  type="submit"
-                  className="booking-submit-button"
-                  disabled={isSubmitting}
+                  className="availability-modal-close"
+                  onClick={() => setShowAvailabilityModal(false)}
+                  aria-label="Close modal"
                 >
-                  <span>
-                    {isSubmitting ? "SUBMITTING..." : "SUBMIT REQUEST"}
-                  </span>
-                  {!isSubmitting && (
-                    <img
-                      src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/68306c3cc50945add9f5302d_364f727b295f3c1bcc98a650dc543d2e_right-arrow.svg"
-                      loading="eager"
-                      alt="Arrow"
-                      className="button-icon"
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M18 6L6 18M6 6L18 18"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
-                  )}
+                  </svg>
                 </button>
-              </form>
+              </div>
+              <div className="availability-modal-content">
+                <div className="availability-summary">
+                  <h4 className="availability-summary-title">Rental Summary</h4>
+                  <div className="availability-summary-details">
+                    <div className="availability-summary-item">
+                      <span className="availability-summary-label">
+                        Pickup:
+                      </span>
+                      <span className="availability-summary-value">
+                        {pickupDate} at {pickupLocation}
+                      </span>
+                    </div>
+                    <div className="availability-summary-item">
+                      <span className="availability-summary-label">
+                        Return:
+                      </span>
+                      <span className="availability-summary-value">
+                        {returnDate} at {returnLocation}
+                      </span>
+                    </div>
+                    <div className="availability-summary-item availability-summary-item-no-border">
+                      <span className="availability-summary-label">
+                        Duration:
+                      </span>
+                      <span className="availability-summary-value">
+                        {pricing.days} {pricing.days === 1 ? "day" : "days"}
+                      </span>
+                    </div>
+                    <div className="availability-summary-total">
+                      <span className="availability-summary-label">Total:</span>
+                      <span className="availability-summary-total-value">
+                        €{pricing.total.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <form
+                  className="availability-contact-form"
+                  onSubmit={handleContactSubmit}
+                >
+                  <div className="availability-form-field">
+                    <label className="booking-label">NAME</label>
+                    <input
+                      type="text"
+                      name="name"
+                      className="booking-input"
+                      value={contactForm.name}
+                      onChange={handleContactChange}
+                      required
+                      placeholder="Your full name"
+                    />
+                  </div>
+                  <div className="availability-form-field">
+                    <label className="booking-label">EMAIL</label>
+                    <input
+                      type="email"
+                      name="email"
+                      className="booking-input"
+                      value={contactForm.email}
+                      onChange={handleContactChange}
+                      required
+                      placeholder="your.email@example.com"
+                    />
+                  </div>
+                  <div className="availability-form-field">
+                    <label className="booking-label">PHONE NUMBER</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      className="booking-input"
+                      value={contactForm.phone}
+                      onChange={handleContactChange}
+                      required
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+                  <div className="availability-form-field">
+                    <label className="booking-label">MESSAGE (OPTIONAL)</label>
+                    <textarea
+                      name="message"
+                      className="booking-input booking-textarea"
+                      value={contactForm.message}
+                      onChange={handleContactChange}
+                      rows="4"
+                      placeholder="Any special requests or questions..."
+                    />
+                  </div>
+                  {submitStatus === "success" && (
+                    <div className="availability-form-success">
+                      Thank you! Your request has been submitted. We'll confirm
+                      availability within a few hours.
+                    </div>
+                  )}
+                  {submitStatus === "error" && (
+                    <div className="availability-form-error">
+                      There was an error submitting your request. Please try
+                      again or contact us directly.
+                    </div>
+                  )}
+                  <button
+                    type="submit"
+                    className="booking-submit-button"
+                    disabled={isSubmitting}
+                  >
+                    <span>
+                      {isSubmitting ? "SUBMITTING..." : "SUBMIT REQUEST"}
+                    </span>
+                    {!isSubmitting && (
+                      <img
+                        src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/68306c3cc50945add9f5302d_364f727b295f3c1bcc98a650dc543d2e_right-arrow.svg"
+                        loading="eager"
+                        alt="Arrow"
+                        className="button-icon"
+                      />
+                    )}
+                  </button>
+                </form>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
