@@ -111,8 +111,9 @@ const Hero = () => {
                             >
                               <div className="tab-pane-image-wrapper">
                                 <img
-                                  loading="eager"
+                                  loading={index === 0 ? "eager" : "lazy"}
                                   fetchPriority={index === 0 ? "high" : "auto"}
+                                  decoding={index === 0 ? "sync" : "async"}
                                   src={imageSrc}
                                   alt={car.name}
                                   className="image-default"
@@ -180,6 +181,13 @@ const Hero = () => {
                                 alt="United States Flag"
                                 width="36"
                                 height="19"
+                                loading="lazy"
+                                decoding="async"
+                                style={{
+                                  width: "36px",
+                                  height: "19px",
+                                  objectFit: "contain",
+                                }}
                               />
                               Made for U.S. Travelers
                             </div>

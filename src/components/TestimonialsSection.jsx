@@ -56,6 +56,10 @@ const TestimonialsSection = () => {
                   src={testimonial.image}
                   alt={testimonial.name}
                   className="testimonial-author-image"
+                  width="50"
+                  height="50"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div className="testimonial-author-info">
                   <strong>{testimonial.name}</strong>
