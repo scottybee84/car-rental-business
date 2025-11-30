@@ -90,10 +90,12 @@ const Hero = () => {
                               }}
                             >
                               <img
-                                loading="eager"
+                                loading="lazy"
                                 src={imageSrc}
                                 alt={key}
                                 className="image-default"
+                                width="80"
+                                height="80"
                               />
                             </button>
                           ))}
@@ -110,9 +112,12 @@ const Hero = () => {
                               <div className="tab-pane-image-wrapper">
                                 <img
                                   loading="eager"
+                                  fetchPriority={index === 0 ? "high" : "auto"}
                                   src={imageSrc}
                                   alt={car.name}
                                   className="image-default"
+                                  width={index === 0 ? 1829 : 750}
+                                  height={index === 0 ? 685 : 563}
                                 />
                               </div>
                             </div>
@@ -170,7 +175,7 @@ const Hero = () => {
                         <div className="slide-model-info">
                           <div className="slide-model-info-item no-gap">
                             <div className="small-text pure-text">
-                              <img src={usFlag} alt="United States Flag" />
+                              <img src={usFlag} alt="United States Flag" width="36" height="19" />
                               Made for U.S. Travelers
                             </div>
                             <p className="hero-sub-subline">

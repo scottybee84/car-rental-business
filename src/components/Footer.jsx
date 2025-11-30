@@ -126,9 +126,11 @@ const Footer = () => {
                   </div>
                   <img
                     src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/68308082b56f128f8b045c7b_button-arrow-abyss.svg"
-                    loading="eager"
+                    loading="lazy"
                     alt="Button Arrow"
                     className="button-icon"
+                    width="16"
+                    height="16"
                   />
                 </a>
               </div>
@@ -158,15 +160,19 @@ const Footer = () => {
                   <div className="link-text-wrapper">
                     <img
                       src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/6833313e82b2956a91165f0c_instagram-logo.svg"
-                      loading="eager"
+                      loading="lazy"
                       alt="Instagram Logo"
+                      width="24"
+                      height="24"
                     />
                   </div>
                   <div className="link-text-wrapper link-text-bottom">
                     <img
                       src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/6833313e82b2956a91165f0c_instagram-logo.svg"
-                      loading="eager"
+                      loading="lazy"
                       alt="Instagram Logo"
+                      width="24"
+                      height="24"
                     />
                   </div>
                 </div>
@@ -181,15 +187,19 @@ const Footer = () => {
                   <div className="link-text-wrapper">
                     <img
                       src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/68332f4468fd043cc4dba57f_x-logo.svg"
-                      loading="eager"
+                      loading="lazy"
                       alt="X (Twitter Logo)"
+                      width="24"
+                      height="24"
                     />
                   </div>
                   <div className="link-text-wrapper link-text-bottom">
                     <img
                       src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/68332f4468fd043cc4dba57f_x-logo.svg"
-                      loading="eager"
+                      loading="lazy"
                       alt="X (Twitter Logo)"
+                      width="24"
+                      height="24"
                     />
                   </div>
                 </div>
@@ -204,15 +214,19 @@ const Footer = () => {
                   <div className="link-text-wrapper">
                     <img
                       src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/683331394f76937e3aa0cfa4_tiktok-logo.svg"
-                      loading="eager"
+                      loading="lazy"
                       alt="TikTok Logo"
+                      width="24"
+                      height="24"
                     />
                   </div>
                   <div className="link-text-wrapper link-text-bottom">
                     <img
                       src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/683331394f76937e3aa0cfa4_tiktok-logo.svg"
-                      loading="eager"
+                      loading="lazy"
                       alt="TikTok Logo"
+                      width="24"
+                      height="24"
                     />
                   </div>
                 </div>
@@ -227,15 +241,19 @@ const Footer = () => {
                   <div className="link-text-wrapper">
                     <img
                       src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/6833313b4e2987177082a2bb_linkedin-logo.svg"
-                      loading="eager"
+                      loading="lazy"
                       alt="LinkedIn Logo"
+                      width="24"
+                      height="24"
                     />
                   </div>
                   <div className="link-text-wrapper link-text-bottom">
                     <img
                       src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/6833313b4e2987177082a2bb_linkedin-logo.svg"
-                      loading="eager"
+                      loading="lazy"
                       alt="LinkedIn Logo"
+                      width="24"
+                      height="24"
                     />
                   </div>
                 </div>

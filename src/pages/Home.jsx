@@ -10,11 +10,13 @@ const Home = () => {
   return (
     <div className="page-wrapper">
       <Navbar />
-      <Hero />
-      <TrustBadges />
-      <TestimonialsSection />
-      <TrustTransparency />
-      <FAQ />
+      <main>
+        <Hero />
+        <TrustBadges />
+        <TestimonialsSection />
+        <TrustTransparency />
+        <FAQ />
+      </main>
       <Footer />
     </div>
   );

@@ -372,8 +372,11 @@ const BookingForm = () => {
                 </div>
                 <div className="booking-form-row">
                   <div className="booking-form-field">
-                    <label className="booking-label">PICKUP LOCATION</label>
+                    <label htmlFor="pickup-location" className="booking-label">
+                      PICKUP LOCATION
+                    </label>
                     <select
+                      id="pickup-location"
                       className="booking-input"
                       value={pickupLocation}
                       onChange={(e) => setPickupLocation(e.target.value)}
@@ -388,8 +391,11 @@ const BookingForm = () => {
                     </select>
                   </div>
                   <div className="booking-form-field">
-                    <label className="booking-label">RETURN LOCATION</label>
+                    <label htmlFor="return-location" className="booking-label">
+                      RETURN LOCATION
+                    </label>
                     <select
+                      id="return-location"
                       className="booking-input"
                       value={returnLocation}
                       onChange={(e) => setReturnLocation(e.target.value)}
@@ -408,9 +414,11 @@ const BookingForm = () => {
                   <span>CHECK AVAILABILITY</span>
                   <img
                     src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/68306c3cc50945add9f5302d_364f727b295f3c1bcc98a650dc543d2e_right-arrow.svg"
-                    loading="eager"
+                    loading="lazy"
                     alt="Arrow"
                     className="button-icon"
+                    width="16"
+                    height="16"
                   />
                 </button>
               </div>
