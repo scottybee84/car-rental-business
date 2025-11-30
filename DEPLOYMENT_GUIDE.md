@@ -5,6 +5,7 @@ This guide covers deploying your React + Vite site to the web and connecting you
 ## 🚀 Recommended: Deploy to GitHub Pages (Free & Simple)
 
 **Why GitHub Pages?**
+
 - ✅ Completely free
 - ✅ Automatic deployments from GitHub
 - ✅ Built-in SSL certificates
@@ -15,6 +16,7 @@ This guide covers deploying your React + Vite site to the web and connecting you
 ### Step 1: Push to GitHub
 
 1. **Initialize Git** (if not already done):
+
    ```bash
    git init
    git add .
@@ -22,6 +24,7 @@ This guide covers deploying your React + Vite site to the web and connecting you
    ```
 
 2. **Create a GitHub repository**:
+
    - Go to https://github.com/new
    - Create a new repository (e.g., `voltvoyage`)
    - **Don't** initialize with README
@@ -46,6 +49,7 @@ This guide covers deploying your React + Vite site to the web and connecting you
 ### Step 3: Enable GitHub Pages
 
 The workflow file is already created (`.github/workflows/deploy.yml`). It will:
+
 - Build your site automatically
 - Deploy to GitHub Pages on every push
 
@@ -70,23 +74,34 @@ Your site will be live at: `https://YOUR_USERNAME.github.io/voltvoyage/`
 ### Step 4: Connect Hostinger Domain
 
 1. **In GitHub Pages Settings**:
+
    - Scroll to "Custom domain"
    - Enter your domain (e.g., `voltvoyage.com`)
    - Check "Enforce HTTPS"
 
 2. **In Hostinger Dashboard**:
+
    - Go to DNS Management
    - Add/Update these DNS records:
      - **Type**: `A` Record
      - **Name**: `@` (or leave blank)
      - **Value**: `185.199.108.153` (GitHub Pages IP)
      - **TTL**: 3600
-   
-   - Add 3 more A records with these IPs:
-     - `185.199.109.153`
-     - `185.199.110.153`
-     - `185.199.111.153`
-   
+   - Add 3 more A records with these IPs (all with TTL: 3600):
+
+     - **Type**: `A` Record
+     - **Name**: `@` (or leave blank)
+     - **Value**: `185.199.109.153`
+     - **TTL**: 3600
+     - **Type**: `A` Record
+     - **Name**: `@` (or leave blank)
+     - **Value**: `185.199.110.153`
+     - **TTL**: 3600
+     - **Type**: `A` Record
+     - **Name**: `@` (or leave blank)
+     - **Value**: `185.199.111.153`
+     - **TTL**: 3600
+
    - For `www` subdomain:
      - **Type**: `CNAME` Record
      - **Name**: `www`
@@ -113,6 +128,7 @@ Your site will be live at: `https://YOUR_USERNAME.github.io/voltvoyage/`
 ## 🌐 Alternative: Deploy to Vercel (Also Great for React)
 
 **Why Vercel?**
+
 - Free tier with excellent performance
 - Automatic deployments from GitHub
 - Built-in SSL certificates
@@ -122,6 +138,7 @@ Your site will be live at: `https://YOUR_USERNAME.github.io/voltvoyage/`
 ### Step 1: Push to GitHub
 
 1. **Initialize Git** (if not already done):
+
    ```bash
    git init
    git add .
@@ -129,6 +146,7 @@ Your site will be live at: `https://YOUR_USERNAME.github.io/voltvoyage/`
    ```
 
 2. **Create a GitHub repository**:
+
    - Go to https://github.com/new
    - Create a new repository (e.g., `voltvoyage`)
    - **Don't** initialize with README
@@ -159,17 +177,18 @@ Your site will be live at: `https://YOUR_USERNAME.github.io/voltvoyage/`
 ### Step 3: Connect Hostinger Domain
 
 1. **In Vercel Dashboard**:
+
    - Go to your project → Settings → Domains
    - Add your domain (e.g., `voltvoyage.com`)
 
 2. **In Hostinger Dashboard**:
+
    - Go to DNS Management
    - Add/Update these DNS records:
      - **Type**: `A` Record
      - **Name**: `@` (or leave blank)
      - **Value**: `76.76.21.21` (Vercel's IP - check Vercel docs for current IP)
      - **TTL**: 3600
-   
    - For `www` subdomain:
      - **Type**: `CNAME` Record
      - **Name**: `www`
@@ -208,12 +227,14 @@ This creates a `dist` folder with production-ready files.
 ### Step 2: Upload to Hostinger
 
 1. **Access Hostinger File Manager** or use **FTP**:
+
    - FTP Host: `ftp.yourdomain.com`
    - Username: Your Hostinger FTP username
    - Password: Your Hostinger FTP password
    - Port: 21
 
 2. **Upload files**:
+
    - Upload **all contents** of the `dist` folder to `public_html` (or your domain's root folder)
    - **Important**: Upload the contents, not the `dist` folder itself
 
@@ -252,15 +273,15 @@ If you choose Hostinger, we need to modify the code to work without environment 
 
 ## 📝 Quick Comparison
 
-| Feature | GitHub Pages | Vercel | Hostinger Hosting |
-|---------|--------------|--------|-------------------|
-| **Ease of Use** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
-| **Auto Deploy** | ✅ Yes (from GitHub) | ✅ Yes (from GitHub) | ❌ Manual upload |
-| **SSL Certificate** | ✅ Automatic | ✅ Automatic | ✅ Included |
-| **Performance** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
-| **Cost** | ✅ Free | ✅ Free tier | 💰 Paid hosting |
-| **Updates** | `git push` | `git push` | Manual FTP upload |
-| **Environment Variables** | ✅ GitHub Secrets | ✅ Easy | ⚠️ Requires setup |
+| Feature                   | GitHub Pages         | Vercel               | Hostinger Hosting |
+| ------------------------- | -------------------- | -------------------- | ----------------- |
+| **Ease of Use**           | ⭐⭐⭐⭐⭐           | ⭐⭐⭐⭐⭐           | ⭐⭐⭐            |
+| **Auto Deploy**           | ✅ Yes (from GitHub) | ✅ Yes (from GitHub) | ❌ Manual upload  |
+| **SSL Certificate**       | ✅ Automatic         | ✅ Automatic         | ✅ Included       |
+| **Performance**           | ⭐⭐⭐⭐             | ⭐⭐⭐⭐⭐           | ⭐⭐⭐            |
+| **Cost**                  | ✅ Free              | ✅ Free tier         | 💰 Paid hosting   |
+| **Updates**               | `git push`           | `git push`           | Manual FTP upload |
+| **Environment Variables** | ✅ GitHub Secrets    | ✅ Easy              | ⚠️ Requires setup |
 
 ---
 
@@ -274,6 +295,7 @@ If you choose Hostinger, we need to modify the code to work without environment 
 4. Make updates in VSCode → `git push` → Auto-deploy
 
 This gives you:
+
 - ✅ Free hosting (GitHub Pages)
 - ✅ Automatic deployments from GitHub
 - ✅ Easy updates via `git push`
@@ -285,9 +307,9 @@ This gives you:
 ## ❓ Need Help?
 
 Let me know which option you prefer, and I can:
+
 - Set up the GitHub repository
 - Configure Vercel deployment
 - Create the `.htaccess` file for Hostinger
 - Set up environment variables properly
 - Create a deployment script
-
