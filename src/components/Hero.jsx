@@ -141,7 +141,8 @@ const Hero = () => {
                               />
                               Made for U.S. Travelers
                             </div>
-                            <h1 className="_4x-large-text pure-text">Rent a Tesla Model Y in Germany</h1>
+                            <p className="hero-sub-subline">English support · Frankfurt Airport pickup · Simple charging</p>
+                            <h1 className="_4x-large-text pure-text">Rent a Tesla Model Y in Germany – Designed for U.S. Travelers</h1>
                           </div>
                         </div>
                       </div>

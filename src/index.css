@@ -292,6 +292,16 @@ body {
   display: block;
 }
 
+.hero-sub-subline {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: none;
+  letter-spacing: 0.5px;
+  margin-top: -8px;
+  margin-bottom: 4px;
+}
+
 .slide-model-info-item.no-gap ._4x-large-text {
   font-size: clamp(28px, 4.5vw, 52px);
   font-weight: 700;
