@@ -432,8 +432,8 @@ const BookingForm = () => {
                   No payment required to check availability.
                 </p>
                 <p className="booking-form-microcopy">
-                  Your request is non-binding. We confirm availability within a
-                  few hours.
+                  Your request is non-binding. We verify availability manually
+                  and will respond within 24 hours.
                 </p>
               </div>
             </form>
@@ -525,6 +525,10 @@ const BookingForm = () => {
                       ${pricing.total.toFixed(2)}
                     </span>
                   </div>
+                  <p className="pricing-total-disclaimer">
+                    This is a price estimate. No payment required. We verify
+                    availability manually within 24 hours.
+                  </p>
                   <div className="pricing-total-rate-type">
                     {pricing.rateType === "monthly" && "Monthly rate applied"}
                     {pricing.rateType === "weekly" && "Weekly rate applied"}
@@ -658,6 +662,10 @@ const BookingForm = () => {
                       </span>
                     </div>
                   </div>
+                  <p className="availability-summary-disclaimer">
+                    This is a price estimate. No payment required. We verify
+                    availability manually within 24 hours.
+                  </p>
                 </div>
                 <form
                   className="availability-contact-form"
@@ -712,8 +720,8 @@ const BookingForm = () => {
                   </div>
                   {submitStatus === "success" && (
                     <div className="availability-form-success">
-                      Thank you! Your request has been submitted. We'll confirm
-                      availability within a few hours.
+                      Thank you! Your request has been submitted. We verify
+                      availability manually and will respond within 24 hours.
                     </div>
                   )}
                   {submitStatus === "error" && (
@@ -728,7 +736,9 @@ const BookingForm = () => {
                     disabled={isSubmitting}
                   >
                     <span>
-                      {isSubmitting ? "SUBMITTING..." : "SUBMIT REQUEST"}
+                      {isSubmitting
+                        ? "SUBMITTING..."
+                        : "SUBMIT REQUEST — NO PAYMENT REQUIRED"}
                     </span>
                     {!isSubmitting && (
                       <img
