@@ -225,6 +225,11 @@ body {
     display: flex;
   }
 
+  .hero-tabs-menu {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
   .hero-thumbnails-container {
     display: none !important;
     gap: 0;
@@ -235,11 +240,6 @@ body {
     opacity: 1;
     gap: 12px;
     margin-top: 12px;
-  }
-
-  .hero-tabs-menu {
-    right: 16px;
-    top: 16px;
   }
 
   .hero-tab-link {
