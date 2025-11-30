@@ -11,7 +11,7 @@ const FAQ = () => {
     },
     {
       question: "What insurance is included?",
-      answer: "Every rental includes comprehensive insurance with collision damage waiver (CDW) and third-party liability coverage. You're fully covered for accidents, theft, and damage. A refundable $500 security deposit is required.",
+      answer: "Every rental includes comprehensive insurance with collision damage waiver (CDW) and third-party liability coverage. You're fully covered for accidents, theft, and damage.",
     },
     {
       question: "How does charging work in Germany?",
