@@ -42,22 +42,9 @@ const BookingForm = () => {
     }
   }, []);
 
-  // Google Ads conversion tracking function
-  const gtag_report_conversion = (url) => {
-    if (!window.gtag) return false;
-
-    const callback = function () {
-      if (typeof url !== "undefined" && url) {
-        window.location = url;
-      }
-    };
-
-    window.gtag("event", "conversion", {
-      send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
-      event_callback: callback,
-    });
-    return false;
-  };
+  // Note: gtag_report_conversion is now defined globally in index.html
+  // We can use window.gtag_report_conversion() for simple click tracking
+  // For conversions with values, we use direct gtag calls below
 
   const handleContactSubmit = async (e) => {
     e.preventDefault();
@@ -324,7 +311,11 @@ const BookingForm = () => {
       return;
     }
     // Track conversion for "Check Availability" button click
-    if (window.gtag) {
+    // Using gtag_report_conversion for click tracking (as per Google's instructions)
+    if (window.gtag_report_conversion) {
+      window.gtag_report_conversion();
+    } else if (window.gtag) {
+      // Fallback to direct gtag call if function not available
       window.gtag("event", "conversion", {
         send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
         value: pricing.total > 0 ? pricing.total : 0,

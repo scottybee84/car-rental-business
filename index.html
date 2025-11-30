@@ -22,6 +22,22 @@
       // Google Ads conversion tracking
       gtag('config', 'AW-1058672092');
     </script>
+    <!-- Event snippet for Sign-up conversion page -->
+    <!-- In your html page, add the snippet and call gtag_report_conversion when someone clicks on the chosen link or button. -->
+    <script>
+      function gtag_report_conversion(url) {
+        var callback = function () {
+          if (typeof(url) != 'undefined') {
+            window.location = url;
+          }
+        };
+        gtag('event', 'conversion', {
+          'send_to': 'AW-1058672092/nulyCJekk74DENyb6PgD',
+          'event_callback': callback
+        });
+        return false;
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
