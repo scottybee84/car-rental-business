@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import emailjs from "@emailjs/browser";
 import "./BookingForm.css";
@@ -33,6 +33,7 @@ const BookingForm = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+  const hasTrackedPricingConversion = useRef(false);
 
   // Initialize EmailJS
   useEffect(() => {
@@ -41,6 +42,45 @@ const BookingForm = () => {
     }
   }, []);
 
+  // Google Ads conversion tracking function
+  const gtag_report_conversion = (url) => {
+    if (!window.gtag) return false;
+
+    const callback = function () {
+      if (typeof url !== "undefined" && url) {
+        window.location = url;
+      }
+    };
+
+    window.gtag("event", "conversion", {
+      send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
+      event_callback: callback,
+    });
+    return false;
+  };
+
+  // Track conversion when dates are entered and totals are calculated
+  useEffect(() => {
+    if (
+      pricing.days > 0 &&
+      pricing.total > 0 &&
+      window.gtag &&
+      !hasTrackedPricingConversion.current
+    ) {
+      // Track conversion when pricing is calculated (only once per session)
+      window.gtag("event", "conversion", {
+        send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
+        value: pricing.total,
+        currency: "USD",
+      });
+      hasTrackedPricingConversion.current = true;
+    }
+    // Reset tracking if dates are cleared
+    if (pricing.days === 0) {
+      hasTrackedPricingConversion.current = false;
+    }
+  }, [pricing.days, pricing.total]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Form submitted", { pickupDate, returnDate });
@@ -48,6 +88,14 @@ const BookingForm = () => {
     if (!pickupDate || !returnDate) {
       alert("Please select both pickup and return dates.");
       return;
+    }
+    // Track conversion for "Check Availability" button click
+    if (window.gtag) {
+      window.gtag("event", "conversion", {
+        send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
+        value: pricing.total > 0 ? pricing.total : 0,
+        currency: "USD",
+      });
     }
     // Show availability modal
     console.log("Showing availability modal");
@@ -81,20 +129,20 @@ const BookingForm = () => {
           return_location: returnLocation,
           rental_days: pricing.days,
           rate_type: pricing.rateType,
-          daily_rate: `€${pricing.dailyRate.toFixed(2)}/day`,
+          daily_rate: `$${pricing.dailyRate.toFixed(2)}/day`,
           airport_fee:
             pricing.airportFee > 0
-              ? `€${pricing.airportFee.toFixed(2)}`
-              : "€0.00",
-          total_price: `€${pricing.total.toFixed(2)}`,
+              ? `$${pricing.airportFee.toFixed(2)}`
+              : "$0.00",
+          total_price: `$${pricing.total.toFixed(2)}`,
         });
         // Simulate success for development
         // Track Google Ads conversion (even in dev mode for testing)
         if (window.gtag) {
           window.gtag("event", "conversion", {
-            send_to: "AW-1058672092",
+            send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
             value: pricing.total,
-            currency: "EUR",
+            currency: "USD",
           });
         }
         setSubmitStatus("success");
@@ -119,12 +167,12 @@ const BookingForm = () => {
         return_location: returnLocation,
         rental_days: pricing.days.toString(),
         rate_type: pricing.rateType,
-        daily_rate: `€${pricing.dailyRate.toFixed(2)}/day`,
+        daily_rate: `$${pricing.dailyRate.toFixed(2)}/day`,
         airport_fee:
           pricing.airportFee > 0
-            ? `€${pricing.airportFee.toFixed(2)}`
-            : "€0.00",
-        total_price: `€${pricing.total.toFixed(2)}`,
+            ? `$${pricing.airportFee.toFixed(2)}`
+            : "$0.00",
+        total_price: `$${pricing.total.toFixed(2)}`,
       };
 
       // Send email to business
@@ -148,12 +196,12 @@ const BookingForm = () => {
           return_location: returnLocation,
           rental_days: pricing.days.toString(),
           rate_type: pricing.rateType,
-          daily_rate: `€${pricing.dailyRate.toFixed(2)}/day`,
+          daily_rate: `$${pricing.dailyRate.toFixed(2)}/day`,
           airport_fee:
             pricing.airportFee > 0
-              ? `€${pricing.airportFee.toFixed(2)}`
-              : "€0.00",
-          total_price: `€${pricing.total.toFixed(2)}`,
+              ? `$${pricing.airportFee.toFixed(2)}`
+              : "$0.00",
+          total_price: `$${pricing.total.toFixed(2)}`,
         };
 
         await emailjs.send(
@@ -166,9 +214,9 @@ const BookingForm = () => {
       // Track Google Ads conversion
       if (window.gtag) {
         window.gtag("event", "conversion", {
-          send_to: "AW-1058672092",
+          send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
           value: pricing.total,
-          currency: "EUR",
+          currency: "USD",
         });
       }
 
@@ -204,10 +252,10 @@ const BookingForm = () => {
   const minReturnDate = pickupDate || today;
 
   // Pricing calculation
-  const BASE_RATE = 89; // €89 per day
+  const BASE_RATE = 89; // $89 per day
   const WEEKLY_DISCOUNT = 0.2; // 20% off
   const MONTHLY_DISCOUNT = 0.4; // Additional 20% off (40% total)
-  const AIRPORT_PICKUP_FEE = 59; // €59 for Frankfurt Airport pickup
+  const AIRPORT_PICKUP_FEE = 59; // $59 for Frankfurt Airport pickup
 
   const pricing = useMemo(() => {
     // Check if Frankfurt Airport is selected in pickup and/or return location
@@ -251,8 +299,8 @@ const BookingForm = () => {
     }
 
     const dailyRate = BASE_RATE;
-    const weeklyRate = BASE_RATE * (1 - WEEKLY_DISCOUNT); // €71.20/day
-    const monthlyRate = BASE_RATE * (1 - MONTHLY_DISCOUNT); // €53.40/day
+    const weeklyRate = BASE_RATE * (1 - WEEKLY_DISCOUNT); // $71.20/day
+    const monthlyRate = BASE_RATE * (1 - MONTHLY_DISCOUNT); // $53.40/day
 
     let total = 0;
     let rateType = "daily";
@@ -302,7 +350,7 @@ const BookingForm = () => {
             <form className="booking-form" onSubmit={handleSubmit}>
               <p className="form-intro-text">Simple, English, Stress-Free.</p>
               <div className="form-from-text">
-                From €{pricing.dailyRate.toFixed(0)}/day
+                From ${pricing.dailyRate.toFixed(0)}/day
               </div>
               <div className="booking-form-fields">
                 <div className="booking-form-row">
@@ -402,20 +450,20 @@ const BookingForm = () => {
                 <div className="pricing-rate-item">
                   <span className="pricing-rate-label">Daily Rate</span>
                   <span className="pricing-rate-value">
-                    €{pricing.dailyRate.toFixed(2)}/day
+                    ${pricing.dailyRate.toFixed(2)}/day
                   </span>
                 </div>
                 <div className="pricing-rate-item">
                   <span className="pricing-rate-label">Weekly Rate</span>
                   <span className="pricing-rate-value pricing-discounted">
-                    €{pricing.weeklyRate.toFixed(2)}/day
+                    ${pricing.weeklyRate.toFixed(2)}/day
                   </span>
                   <span className="pricing-discount-badge">20% off</span>
                 </div>
                 <div className="pricing-rate-item">
                   <span className="pricing-rate-label">Monthly Rate</span>
                   <span className="pricing-rate-value pricing-discounted">
-                    €{pricing.monthlyRate.toFixed(2)}/day
+                    ${pricing.monthlyRate.toFixed(2)}/day
                   </span>
                   <span className="pricing-discount-badge">40% off</span>
                 </div>
@@ -426,7 +474,7 @@ const BookingForm = () => {
                         Frankfurt Airport pickup
                       </span>
                       <span className="pricing-rate-value">
-                        +€{AIRPORT_PICKUP_FEE}
+                        +${AIRPORT_PICKUP_FEE}
                       </span>
                     </div>
                     <small className="pricing-rate-description">
@@ -442,7 +490,7 @@ const BookingForm = () => {
                         Frankfurt Airport return
                       </span>
                       <span className="pricing-rate-value">
-                        +€{AIRPORT_PICKUP_FEE}
+                        +${AIRPORT_PICKUP_FEE}
                       </span>
                     </div>
                     <small className="pricing-rate-description">
@@ -473,7 +521,7 @@ const BookingForm = () => {
                   <div className="pricing-total-amount">
                     <span className="pricing-total-label">Total:</span>
                     <span className="pricing-total-value">
-                      €{pricing.total.toFixed(2)}
+                      ${pricing.total.toFixed(2)}
                     </span>
                   </div>
                   <div className="pricing-total-rate-type">
@@ -529,7 +577,7 @@ const BookingForm = () => {
                   <strong>30+ days</strong> = Monthly rate (40% off)
                 </div>
                 <div className="pricing-modal-item">
-                  <strong>Airport pickup/return fees</strong> = +€59 each
+                  <strong>Airport pickup/return fees</strong> = +$59 each
                 </div>
                 <div className="pricing-modal-item">
                   <strong>No hidden charges</strong> - What you see is what you
@@ -605,7 +653,7 @@ const BookingForm = () => {
                     <div className="availability-summary-total">
                       <span className="availability-summary-label">Total:</span>
                       <span className="availability-summary-total-value">
-                        €{pricing.total.toFixed(2)}
+                        ${pricing.total.toFixed(2)}
                       </span>
                     </div>
                   </div>
