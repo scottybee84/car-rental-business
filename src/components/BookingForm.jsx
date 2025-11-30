@@ -59,50 +59,6 @@ const BookingForm = () => {
     return false;
   };
 
-  // Track conversion when dates are entered and totals are calculated
-  useEffect(() => {
-    if (
-      pricing.days > 0 &&
-      pricing.total > 0 &&
-      window.gtag &&
-      !hasTrackedPricingConversion.current
-    ) {
-      // Track conversion when pricing is calculated (only once per session)
-      window.gtag("event", "conversion", {
-        send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
-        value: pricing.total,
-        currency: "USD",
-      });
-      hasTrackedPricingConversion.current = true;
-    }
-    // Reset tracking if dates are cleared
-    if (pricing.days === 0) {
-      hasTrackedPricingConversion.current = false;
-    }
-  }, [pricing.days, pricing.total]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted", { pickupDate, returnDate });
-    // Validate dates are set
-    if (!pickupDate || !returnDate) {
-      alert("Please select both pickup and return dates.");
-      return;
-    }
-    // Track conversion for "Check Availability" button click
-    if (window.gtag) {
-      window.gtag("event", "conversion", {
-        send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
-        value: pricing.total > 0 ? pricing.total : 0,
-        currency: "USD",
-      });
-    }
-    // Show availability modal
-    console.log("Showing availability modal");
-    setShowAvailabilityModal(true);
-    console.log("showAvailabilityModal set to:", true);
-  };
-
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -336,6 +292,50 @@ const BookingForm = () => {
       hasReturnAirport,
     };
   }, [pickupDate, returnDate, pickupLocation, returnLocation]);
+
+  // Track conversion when dates are entered and totals are calculated
+  useEffect(() => {
+    if (
+      pricing.days > 0 &&
+      pricing.total > 0 &&
+      window.gtag &&
+      !hasTrackedPricingConversion.current
+    ) {
+      // Track conversion when pricing is calculated (only once per session)
+      window.gtag("event", "conversion", {
+        send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
+        value: pricing.total,
+        currency: "USD",
+      });
+      hasTrackedPricingConversion.current = true;
+    }
+    // Reset tracking if dates are cleared
+    if (pricing.days === 0) {
+      hasTrackedPricingConversion.current = false;
+    }
+  }, [pricing.days, pricing.total]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Form submitted", { pickupDate, returnDate });
+    // Validate dates are set
+    if (!pickupDate || !returnDate) {
+      alert("Please select both pickup and return dates.");
+      return;
+    }
+    // Track conversion for "Check Availability" button click
+    if (window.gtag) {
+      window.gtag("event", "conversion", {
+        send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
+        value: pricing.total > 0 ? pricing.total : 0,
+        currency: "USD",
+      });
+    }
+    // Show availability modal
+    console.log("Showing availability modal");
+    setShowAvailabilityModal(true);
+    console.log("showAvailabilityModal set to:", true);
+  };
 
   // Extract airport flags for use in JSX
   const hasPickupAirport = pricing.hasPickupAirport;
