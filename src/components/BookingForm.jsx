@@ -89,6 +89,14 @@ const BookingForm = () => {
           total_price: `€${pricing.total.toFixed(2)}`,
         });
         // Simulate success for development
+        // Track Google Ads conversion (even in dev mode for testing)
+        if (window.gtag) {
+          window.gtag("event", "conversion", {
+            send_to: "AW-1058672092",
+            value: pricing.total,
+            currency: "EUR",
+          });
+        }
         setSubmitStatus("success");
         setContactForm({ name: "", email: "", phone: "", message: "" });
         setTimeout(() => {
@@ -153,6 +161,15 @@ const BookingForm = () => {
           EMAILJS_CUSTOMER_TEMPLATE_ID,
           customerTemplateParams
         );
+      }
+
+      // Track Google Ads conversion
+      if (window.gtag) {
+        window.gtag("event", "conversion", {
+          send_to: "AW-1058672092",
+          value: pricing.total,
+          currency: "EUR",
+        });
       }
 
       setSubmitStatus("success");
