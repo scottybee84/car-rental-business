@@ -19,7 +19,7 @@ const Navbar = () => {
           </div>
           <div className="nav-brand-wrapper">
             <a href="/" className="logo-link w-inline-block">
-              <span className="logo-text">VOLTVOYAGE</span>
+              <h3 className="logo-text">VOLTVOYAGE</h3>
             </a>
           </div>
           <div style={{ width: "40px" }}></div>
@@ -35,9 +35,7 @@ const Navbar = () => {
             <div className="menu-top">
               <div className="menu-brand-wrapper">
                 <a href="/" className="logo-link w-inline-block">
-                  <span className="pricing-calculator-title">
-                    <h3>VOLTVOYAGE</h3>
-                  </span>
+                  <h3 className="logo-text">VOLTVOYAGE</h3>
                 </a>
               </div>
               <div
