@@ -198,6 +198,9 @@ const Hero = () => {
                       </div>
                     </div>
                   </div>
+                  <div className="hero-urgency-text">
+                    🔥 Now accepting early 2025 requests
+                  </div>
                 </div>
               </div>
             </div>
