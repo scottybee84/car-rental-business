@@ -104,3 +104,4 @@ npm run dev
 - Check the browser console for any error messages
 - Verify your EmailJS service is connected and active
 
+

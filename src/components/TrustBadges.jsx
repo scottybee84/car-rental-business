@@ -54,3 +54,4 @@ const TrustBadges = () => {
 };
 
 export default TrustBadges;
+
