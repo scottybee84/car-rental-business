@@ -72,6 +72,12 @@ body {
   overflow: hidden;
 }
 
+.hero-tabs {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 /* Hero tabs menu - thumbnail preview buttons */
 .hero-tabs-menu {
   position: absolute;
@@ -170,19 +176,57 @@ body {
   object-fit: cover;
 }
 
+/* Mobile Navigation Arrows */
+.hero-nav-arrow {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  align-items: center;
+  justify-content: center;
+  z-index: 21;
+  padding: 0;
+}
+
+.hero-nav-arrow:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(0, 0, 0, 0.9);
+}
+
+.hero-nav-arrow svg {
+  width: 24px;
+  height: 24px;
+}
+
+.hero-nav-arrow-left {
+  left: 12px;
+}
+
+.hero-nav-arrow-right {
+  right: 12px;
+}
+
 /* Mobile accordion functionality */
 @media screen and (max-width: 767px) {
   .hero-thumbnails-toggle {
+    display: none !important;
+  }
+
+  .hero-nav-arrow {
     display: flex;
   }
 
   .hero-thumbnails-container {
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transition:
-      max-height 0.3s ease,
-      opacity 0.3s ease;
+    display: none !important;
     gap: 0;
   }
 
@@ -234,8 +278,14 @@ body {
 .tab-pane-image-wrapper img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
+}
+
+/* First image should be spread out (cover) */
+.hero-tab-pane:first-child .tab-pane-image-wrapper img,
+.hero-tab-pane[data-first-image="true"] .tab-pane-image-wrapper img {
+  object-fit: cover;
 }
 
 /* Text overlay on hero car image */
@@ -339,9 +389,14 @@ body {
 /* Make sure navbar doesn't cover content */
 .navbar {
   position: relative;
-  z-index: 100;
+  z-index: 1000 !important;
   min-height: 60px;
   padding: 12px 0;
+  background-color: transparent;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100%;
 }
 
 .navbar .content-wrapper {
@@ -407,6 +462,19 @@ body {
   position: relative;
   width: 100%;
   min-height: 60px;
+  visibility: visible !important;
+}
+
+.menu-button {
+  display: none !important;
+  visibility: hidden !important;
+  z-index: 1001 !important;
+}
+
+.top-line,
+.bottom-line {
+  background-color: #fff !important;
+  visibility: visible !important;
 }
 
 .nav-brand-wrapper {
@@ -418,8 +486,9 @@ body {
   display: flex !important;
   justify-content: center;
   align-items: center;
-  z-index: 1;
+  z-index: 1001 !important;
   width: auto;
+  visibility: visible !important;
 }
 
 .menu-button {

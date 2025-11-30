@@ -34,6 +34,21 @@ const Hero = () => {
     },
   };
 
+  const imageKeys = Object.keys(car.images);
+  const currentIndex = imageKeys.indexOf(activeTab);
+
+  const goToPrevious = () => {
+    const prevIndex =
+      currentIndex === 0 ? imageKeys.length - 1 : currentIndex - 1;
+    setActiveTab(imageKeys[prevIndex]);
+  };
+
+  const goToNext = () => {
+    const nextIndex =
+      currentIndex === imageKeys.length - 1 ? 0 : currentIndex + 1;
+    setActiveTab(imageKeys[nextIndex]);
+  };
+
   return (
     <section className="section home-hero-section">
       <div className="hero-slider-mask">
@@ -85,22 +100,70 @@ const Hero = () => {
                         </div>
                       </div>
                       <div className="hero-tabs-content w-tab-content">
-                        {Object.entries(car.images).map(([key, imageSrc]) => (
-                          <div
-                            key={key}
-                            className={`hero-tab-pane w-tab-pane ${activeTab === key ? "w--tab-active" : ""}`}
-                          >
-                            <div className="tab-pane-image-wrapper">
-                              <img
-                                loading="eager"
-                                src={imageSrc}
-                                alt={car.name}
-                                className="image-default"
-                              />
+                        {Object.entries(car.images).map(
+                          ([key, imageSrc], index) => (
+                            <div
+                              key={key}
+                              className={`hero-tab-pane w-tab-pane ${activeTab === key ? "w--tab-active" : ""}`}
+                              data-first-image={index === 0 ? "true" : "false"}
+                            >
+                              <div className="tab-pane-image-wrapper">
+                                <img
+                                  loading="eager"
+                                  src={imageSrc}
+                                  alt={car.name}
+                                  className="image-default"
+                                />
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          )
+                        )}
                       </div>
+                      {/* Mobile Navigation Arrows */}
+                      <button
+                        type="button"
+                        className="hero-nav-arrow hero-nav-arrow-left"
+                        onClick={goToPrevious}
+                        aria-label="Previous image"
+                      >
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M15 18L9 12L15 6"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        className="hero-nav-arrow hero-nav-arrow-right"
+                        onClick={goToNext}
+                        aria-label="Next image"
+                      >
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M9 18L15 12L9 6"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
                     </div>
                     <div className="slide-model-info-wrapper">
                       <div className="content-wrapper">
