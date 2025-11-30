@@ -13,7 +13,7 @@ const Impressum = () => {
 
             <h2>Angaben gemäß § 5 TMG</h2>
             <p>
-              VoltVoyage – Manu Fitz
+              VoltVoyage – Scott Brown
               <br />
               Braunstrasse 2-4
               <br />
@@ -25,7 +25,7 @@ const Impressum = () => {
 
             <h2>Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2>
             <p>
-              Manu Fitz
+              Scott Brown
               <br />
               Braunstrasse 2-4
               <br />
