@@ -1,0 +1,505 @@
+.booking-section-container {
+  width: 100%;
+  padding: 16px 20px;
+  margin-top: 0;
+  margin-bottom: 0;
+  position: relative;
+  z-index: 10;
+  background-color: transparent;
+}
+
+.booking-section-container .content-wrapper {
+  max-width: 100%;
+  width: 100%;
+  padding: 0;
+}
+
+.booking-section-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: stretch;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Left Side - Form */
+.booking-form-side {
+  width: 100%;
+  display: flex;
+  height: 100%;
+}
+
+.booking-form {
+  width: 100%;
+  background-color: #f0f0f0;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.form-intro-text {
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.7);
+  text-align: left;
+  font-style: italic;
+  margin-bottom: 24px;
+}
+
+.booking-form-fields {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.booking-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.booking-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.booking-submit-button {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.booking-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: rgba(0, 0, 0, 0.7);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.booking-input {
+  width: 100%;
+  padding: 14px 16px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  color: #1a1a1a;
+  font-size: 16px;
+  font-family: 'Lexend Deca', sans-serif;
+  transition: all 0.3s ease;
+  outline: none;
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.booking-input:hover {
+  border-color: rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+}
+
+.booking-input:focus {
+  border-color: rgba(0, 0, 0, 0.3);
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.booking-input::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.booking-input option {
+  background-color: #fff;
+  color: #1a1a1a;
+}
+
+/* Date picker styling */
+.booking-input[type="date"] {
+  color-scheme: light;
+  cursor: pointer;
+  position: relative;
+}
+
+.booking-input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  cursor: pointer;
+  opacity: 0.7;
+  width: 20px;
+  height: 20px;
+  margin-left: 8px;
+}
+
+.booking-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.booking-input[type="date"]:not(:placeholder-shown) {
+  color: #1a1a1a;
+}
+
+.booking-input[type="date"]::-webkit-datetime-edit-text {
+  color: #1a1a1a;
+}
+
+.booking-input[type="date"]::-webkit-datetime-edit-month-field,
+.booking-input[type="date"]::-webkit-datetime-edit-day-field,
+.booking-input[type="date"]::-webkit-datetime-edit-year-field {
+  color: #1a1a1a;
+}
+
+/* Select dropdown styling */
+.booking-input select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231a1a1a' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+  pointer-events: auto !important;
+  z-index: 100 !important;
+}
+
+.booking-submit-button {
+  width: 100%;
+  padding: 16px 24px;
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'Lexend Deca', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  z-index: 11;
+  pointer-events: auto;
+  margin-top: 8px;
+}
+
+.booking-submit-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.booking-submit-button:hover::before {
+  left: 100%;
+}
+
+.booking-submit-button:hover {
+  border-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.9);
+  transform: translateY(-2px);
+}
+
+.booking-submit-button:active {
+  transform: translateY(0);
+}
+
+.booking-submit-button .button-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+.booking-submit-button:hover .button-icon {
+  transform: translateX(4px);
+}
+
+.booking-form-note {
+  margin-top: 16px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.5);
+  text-align: left;
+  font-style: italic;
+  padding-left: 0;
+}
+
+/* Right Side - Pricing Calculator */
+.pricing-calculator-side {
+  width: 100%;
+  display: flex;
+  height: 100%;
+}
+
+.pricing-calculator {
+  background-color: #f0f0f0;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 32px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.pricing-intro-text {
+  font-size: 18px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.7);
+  text-align: left;
+  margin: 0 0 16px 0;
+  font-style: italic;
+}
+
+.pricing-calculator-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.8);
+  margin-bottom: 24px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pricing-rates {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex: 1;
+}
+
+.pricing-rate-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.pricing-rate-item:last-child {
+  border-bottom: none;
+}
+
+.pricing-rate-label {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pricing-rate-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.pricing-rate-value.pricing-discounted {
+  color: #16a34a;
+}
+
+.pricing-discount-badge {
+  font-size: 11px;
+  color: #16a34a;
+  margin-left: 8px;
+  padding: 2px 6px;
+  background-color: rgba(22, 163, 74, 0.15);
+  border-radius: 4px;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.pricing-total {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid rgba(0, 0, 0, 0.15);
+}
+
+.pricing-total-days {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.pricing-total-amount {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.pricing-total-label {
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pricing-total-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.pricing-total-rate-type {
+  font-size: 12px;
+  color: #16a34a;
+  font-style: italic;
+}
+
+/* Hero booking form wrapper */
+.hero-booking-form-wrapper {
+  margin-top: 0;
+  margin-bottom: 0;
+  width: 100%;
+}
+
+
+/* Responsive design */
+@media screen and (max-width: 991px) {
+  .booking-section-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    align-items: stretch;
+  }
+
+  .booking-form-side,
+  .pricing-calculator-side {
+    height: auto;
+  }
+
+  .booking-form,
+  .pricing-calculator {
+    height: auto;
+    min-height: auto;
+  }
+
+  .booking-form-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .booking-form {
+    padding: 24px 20px;
+  }
+
+  .pricing-calculator {
+    padding: 24px 20px;
+  }
+
+  .booking-form-fields {
+    justify-content: flex-start;
+  }
+
+  .pricing-rates {
+    flex: 0;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .booking-section-container {
+    padding: 24px 16px;
+  }
+
+  .booking-section-layout {
+    gap: 24px;
+  }
+
+  .booking-form {
+    padding: 20px 16px;
+  }
+
+  .booking-form-fields {
+    gap: 16px;
+  }
+
+  .booking-form-row {
+    gap: 12px;
+  }
+
+  .booking-input {
+    padding: 12px 14px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+
+  .booking-label {
+    font-size: 10px;
+    margin-bottom: 6px;
+  }
+
+  .booking-submit-button {
+    padding: 14px 20px;
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  .pricing-calculator {
+    padding: 20px 16px;
+  }
+
+  .pricing-calculator-title {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .pricing-rates {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .pricing-rate-item {
+    padding: 10px 0;
+  }
+
+  .pricing-rate-label {
+    font-size: 12px;
+  }
+
+  .pricing-rate-value {
+    font-size: 16px;
+  }
+
+  .pricing-total {
+    margin-top: 20px;
+    padding-top: 20px;
+  }
+
+  .pricing-total-value {
+    font-size: 24px;
+  }
+
+  .pricing-total-days {
+    font-size: 11px;
+    margin-bottom: 10px;
+  }
+}
+

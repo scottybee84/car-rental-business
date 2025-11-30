@@ -1,0 +1,423 @@
+@import "./styles.css";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Lexend Deca", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #000;
+  color: #fff;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.page-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #000;
+}
+
+/* Ensure hero section is visible */
+.section.home-hero-section {
+  display: block !important;
+  min-height: auto;
+  position: relative;
+  z-index: 1;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.hero-slider-mask {
+  display: block !important;
+  width: 100%;
+  min-height: auto;
+}
+
+.hero-slide-item {
+  display: block !important;
+  width: 100%;
+  min-height: auto;
+}
+
+.hero-collection-wrapper,
+.hero-collection-list,
+.hero-collection-item {
+  width: 100%;
+  height: 100%;
+  display: block !important;
+}
+
+.hero-slide-content {
+  width: 100%;
+  min-height: auto;
+  display: flex !important;
+  flex-direction: column;
+  gap: 0;
+}
+
+.hero-tabs-wrapper {
+  display: block !important;
+  width: 100%;
+  height: 500px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hero tabs menu - thumbnail preview buttons */
+.hero-tabs-menu {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+  display: flex !important;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  pointer-events: auto;
+  max-width: 100px;
+}
+
+/* Thumbnails toggle button (mobile) */
+.hero-thumbnails-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 300;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+  align-items: center;
+  justify-content: center;
+  z-index: 21;
+}
+
+.hero-thumbnails-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(0, 0, 0, 0.9);
+}
+
+.thumbnails-toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* Thumbnails container */
+.hero-thumbnails-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+  width: 100%;
+}
+
+/* Desktop: always show thumbnails */
+@media screen and (min-width: 768px) {
+  .hero-thumbnails-container {
+    display: flex !important;
+    max-height: none !important;
+    opacity: 1 !important;
+  }
+
+  .hero-thumbnails-toggle {
+    display: none !important;
+  }
+}
+
+.hero-tab-link {
+  width: 80px;
+  height: 60px;
+  display: block;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  flex-shrink: 0;
+}
+
+.hero-tab-link:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: scale(1.05);
+}
+
+.hero-tab-link.w--current {
+  border-color: rgba(255, 255, 255, 0.9);
+  border-width: 3px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.hero-tab-link img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Mobile accordion functionality */
+@media screen and (max-width: 767px) {
+  .hero-thumbnails-toggle {
+    display: flex;
+  }
+
+  .hero-thumbnails-container {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition:
+      max-height 0.3s ease,
+      opacity 0.3s ease;
+    gap: 0;
+  }
+
+  .hero-tabs-menu.thumbnails-open .hero-thumbnails-container {
+    max-height: 300px;
+    opacity: 1;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .hero-tabs-menu {
+    right: 16px;
+    top: 16px;
+  }
+
+  .hero-tab-link {
+    width: 70px;
+    height: 52px;
+  }
+}
+
+.hero-tabs-content {
+  display: block !important;
+  width: 100%;
+  height: 500px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-tab-pane {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-tab-pane.w--tab-active {
+  display: block !important;
+}
+
+.tab-pane-image-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  background-color: #000;
+}
+
+.tab-pane-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Text overlay on hero car image */
+.slide-model-info-wrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 40px 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.4) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.slide-model-info-wrapper .content-wrapper {
+  pointer-events: auto;
+}
+
+.slide-model-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.slide-model-info-item.no-gap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slide-model-info-item.no-gap .small-text {
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slide-model-info-item.no-gap .small-text img {
+  width: 36px;
+  height: 27px;
+  object-fit: contain;
+  flex-shrink: 0;
+  background: transparent;
+  mix-blend-mode: normal;
+  display: block;
+}
+
+.slide-model-info-item.no-gap ._4x-large-text {
+  font-size: clamp(28px, 4.5vw, 52px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: #fff;
+  max-width: 800px;
+}
+
+/* Fix navbar menu overlay - only show when open */
+.nav-menu-content {
+  z-index: 9999;
+  display: none !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.nav-menu-content.w--open {
+  display: block !important;
+}
+
+/* Ensure content is visible when menu is closed */
+.page-wrapper > * {
+  position: relative;
+  z-index: 1;
+}
+
+.section {
+  position: relative;
+  z-index: 1;
+}
+
+/* Make sure navbar doesn't cover content */
+.navbar {
+  position: relative;
+  z-index: 100;
+  min-height: 60px;
+  padding: 12px 0;
+}
+
+.navbar .content-wrapper {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Ensure hero section is below navbar but visible */
+.section.home-hero-section {
+  margin-top: 0;
+  margin-bottom: 0;
+  z-index: 0;
+  overflow: visible;
+}
+
+/* Fix overlapping sections */
+.section {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+  clear: both;
+  isolation: isolate;
+}
+
+/* Ensure proper spacing between sections */
+.section:not(.home-hero-section):not(.no-padding-top) {
+  padding-top: 80px;
+  padding-bottom: 80px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.section.no-padding-top {
+  padding-top: 0;
+  padding-bottom: 80px;
+}
+
+/* Specific spacing for AmericanBenefits section - comes right after hero */
+.section:has(.home-benefits-wrapper):first-of-type {
+  padding-top: 120px;
+  padding-bottom: 100px;
+  margin-top: 0;
+}
+
+/* Ensure booking form is always interactive */
+.booking-section-container * {
+  pointer-events: auto;
+}
+
+.booking-section-container input,
+.booking-section-container select,
+.booking-section-container button {
+  pointer-events: auto !important;
+  z-index: 100 !important;
+  position: relative;
+}
+
+/* Center logo in navbar */
+.navbar-wrapper {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  width: 100%;
+  min-height: 60px;
+}
+
+.nav-brand-wrapper {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+  width: auto;
+}
+
+.menu-button {
+  z-index: 2;
+}
+
+/* Hide search placeholder */
+.navbar-wrapper > div:last-child:not(nav) {
+  width: 40px;
+  visibility: hidden;
+}
