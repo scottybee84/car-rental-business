@@ -82,8 +82,9 @@ const BookingForm = () => {
         // Simulate success for development
         // Track Google Ads conversion (even in dev mode for testing)
         if (window.gtag) {
+          // Submit lead form conversion
           window.gtag("event", "conversion", {
-            send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
+            send_to: "AW-1058672092/ajR8CKScuckbENyb6PgD",
             value: pricing.total,
             currency: "USD",
           });
@@ -154,10 +155,11 @@ const BookingForm = () => {
         );
       }
 
-      // Track Google Ads conversion
+      // Track Google Ads conversion for form submission
       if (window.gtag) {
+        // Submit lead form conversion
         window.gtag("event", "conversion", {
-          send_to: "AW-1058672092/nulyCJekk74DENyb6PgD",
+          send_to: "AW-1058672092/ajR8CKScuckbENyb6PgD",
           value: pricing.total,
           currency: "USD",
         });
