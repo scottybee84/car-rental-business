@@ -1,5 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import emailjs from "@emailjs/browser";
 import "./BookingForm.css";
+
+// EmailJS Configuration
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "YOUR_SERVICE_ID";
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "YOUR_TEMPLATE_ID";
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
 
 const BookingForm = () => {
   const [pickupDate, setPickupDate] = useState("");
@@ -11,11 +17,124 @@ const BookingForm = () => {
     "Frankfurt Airport (FRA)"
   );
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null);
+
+  // Initialize EmailJS
+  useEffect(() => {
+    if (EMAILJS_PUBLIC_KEY && EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY") {
+      emailjs.init(EMAILJS_PUBLIC_KEY);
+    }
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission
-    console.log({ pickupDate, returnDate, pickupLocation, returnLocation });
+    console.log("Form submitted", { pickupDate, returnDate });
+    // Validate dates are set
+    if (!pickupDate || !returnDate) {
+      alert("Please select both pickup and return dates.");
+      return;
+    }
+    // Show availability modal
+    console.log("Showing availability modal");
+    setShowAvailabilityModal(true);
+    console.log("showAvailabilityModal set to:", true);
+  };
+
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      // Check if EmailJS is configured
+      if (
+        EMAILJS_SERVICE_ID === "YOUR_SERVICE_ID" ||
+        EMAILJS_TEMPLATE_ID === "YOUR_TEMPLATE_ID" ||
+        EMAILJS_PUBLIC_KEY === "YOUR_PUBLIC_KEY"
+      ) {
+        console.warn(
+          "EmailJS not configured. Please set up your EmailJS credentials."
+        );
+        console.log("Email data that would be sent:", {
+          customer_name: contactForm.name,
+          customer_email: contactForm.email,
+          customer_phone: contactForm.phone,
+          customer_message: contactForm.message || "No message provided",
+          pickup_date: pickupDate,
+          return_date: returnDate,
+          pickup_location: pickupLocation,
+          return_location: returnLocation,
+          rental_days: pricing.days,
+          rate_type: pricing.rateType,
+          daily_rate: `€${pricing.dailyRate.toFixed(2)}/day`,
+          airport_fee: pricing.airportFee > 0 ? `€${pricing.airportFee.toFixed(2)}` : "€0.00",
+          total_price: `€${pricing.total.toFixed(2)}`,
+        });
+        // Simulate success for development
+        setSubmitStatus("success");
+        setContactForm({ name: "", email: "", phone: "", message: "" });
+        setTimeout(() => {
+          setShowAvailabilityModal(false);
+          setSubmitStatus(null);
+        }, 2000);
+        return;
+      }
+
+      // Send email using EmailJS
+      const templateParams = {
+        to_email: "scottybee@gmail.com",
+        customer_name: contactForm.name,
+        customer_email: contactForm.email,
+        customer_phone: contactForm.phone,
+        customer_message: contactForm.message || "No message provided",
+        pickup_date: pickupDate,
+        return_date: returnDate,
+        pickup_location: pickupLocation,
+        return_location: returnLocation,
+        rental_days: pricing.days.toString(),
+        rate_type: pricing.rateType,
+        daily_rate: `€${pricing.dailyRate.toFixed(2)}/day`,
+        airport_fee: pricing.airportFee > 0 ? `€${pricing.airportFee.toFixed(2)}` : "€0.00",
+        total_price: `€${pricing.total.toFixed(2)}`,
+      };
+
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        templateParams
+      );
+
+      setSubmitStatus("success");
+      setContactForm({ name: "", email: "", phone: "", message: "" });
+      setTimeout(() => {
+        setShowAvailabilityModal(false);
+        setSubmitStatus(null);
+      }, 2000);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setSubmitStatus("error");
+      alert(
+        "There was an error sending your request. Please try again or contact us directly."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleContactChange = (e) => {
+    const { name, value } = e.target;
+    setContactForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   // Calculate minimum date (today)
@@ -346,6 +465,154 @@ const BookingForm = () => {
                 <strong>No hidden charges</strong> - What you see is what you
                 pay
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {showAvailabilityModal && (
+        <div
+          className="availability-modal-overlay"
+          onClick={() => setShowAvailabilityModal(false)}
+        >
+          <div
+            className="availability-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="availability-modal-header">
+              <h3 className="availability-modal-title">Check Availability</h3>
+              <button
+                className="availability-modal-close"
+                onClick={() => setShowAvailabilityModal(false)}
+                aria-label="Close modal"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M18 6L6 18M6 6L18 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="availability-modal-content">
+              <div className="availability-summary">
+                <h4 className="availability-summary-title">Rental Summary</h4>
+                <div className="availability-summary-details">
+                  <div className="availability-summary-item">
+                    <span className="availability-summary-label">Pickup:</span>
+                    <span className="availability-summary-value">
+                      {pickupDate} at {pickupLocation}
+                    </span>
+                  </div>
+                  <div className="availability-summary-item">
+                    <span className="availability-summary-label">Return:</span>
+                    <span className="availability-summary-value">
+                      {returnDate} at {returnLocation}
+                    </span>
+                  </div>
+                  <div className="availability-summary-item availability-summary-item-no-border">
+                    <span className="availability-summary-label">
+                      Duration:
+                    </span>
+                    <span className="availability-summary-value">
+                      {pricing.days} {pricing.days === 1 ? "day" : "days"}
+                    </span>
+                  </div>
+                  <div className="availability-summary-total">
+                    <span className="availability-summary-label">Total:</span>
+                    <span className="availability-summary-total-value">
+                      €{pricing.total.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <form
+                className="availability-contact-form"
+                onSubmit={handleContactSubmit}
+              >
+                <div className="availability-form-field">
+                  <label className="booking-label">NAME</label>
+                  <input
+                    type="text"
+                    name="name"
+                    className="booking-input"
+                    value={contactForm.name}
+                    onChange={handleContactChange}
+                    required
+                    placeholder="Your full name"
+                  />
+                </div>
+                <div className="availability-form-field">
+                  <label className="booking-label">EMAIL</label>
+                  <input
+                    type="email"
+                    name="email"
+                    className="booking-input"
+                    value={contactForm.email}
+                    onChange={handleContactChange}
+                    required
+                    placeholder="your.email@example.com"
+                  />
+                </div>
+                <div className="availability-form-field">
+                  <label className="booking-label">PHONE NUMBER</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    className="booking-input"
+                    value={contactForm.phone}
+                    onChange={handleContactChange}
+                    required
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+                <div className="availability-form-field">
+                  <label className="booking-label">MESSAGE (OPTIONAL)</label>
+                  <textarea
+                    name="message"
+                    className="booking-input booking-textarea"
+                    value={contactForm.message}
+                    onChange={handleContactChange}
+                    rows="4"
+                    placeholder="Any special requests or questions..."
+                  />
+                </div>
+                {submitStatus === "success" && (
+                  <div className="availability-form-success">
+                    Thank you! Your request has been submitted. We'll confirm
+                    availability within a few hours.
+                  </div>
+                )}
+                {submitStatus === "error" && (
+                  <div className="availability-form-error">
+                    There was an error submitting your request. Please try again
+                    or contact us directly.
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  className="booking-submit-button"
+                  disabled={isSubmitting}
+                >
+                  <span>{isSubmitting ? "SUBMITTING..." : "SUBMIT REQUEST"}</span>
+                  {!isSubmitting && (
+                    <img
+                      src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/68306c3cc50945add9f5302d_364f727b295f3c1bcc98a650dc543d2e_right-arrow.svg"
+                      loading="eager"
+                      alt="Arrow"
+                      className="button-icon"
+                    />
+                  )}
+                </button>
+              </form>
             </div>
           </div>
         </div>
