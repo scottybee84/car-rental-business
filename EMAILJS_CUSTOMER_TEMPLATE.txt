@@ -1,0 +1,79 @@
+===========================================
+EMAILJS CUSTOMER AUTO-REPLY TEMPLATE
+===========================================
+
+Create a NEW template in EmailJS for customer auto-reply
+
+SUBJECT LINE:
+Thank You for Your Tesla Rental Inquiry - {{customer_name}}
+
+EMAIL BODY (HTML):
+===========================================
+
+<h2>Thank You for Your Interest, {{customer_name}}!</h2>
+
+<p>We've received your inquiry for a Tesla Model Y rental in Germany. We're excited to help make your trip stress-free!</p>
+
+<h3>Your Rental Quote:</h3>
+<p>
+<strong>Pickup Date:</strong> {{pickup_date}}<br>
+<strong>Return Date:</strong> {{return_date}}<br>
+<strong>Pickup Location:</strong> {{pickup_location}}<br>
+<strong>Return Location:</strong> {{return_location}}<br>
+<strong>Duration:</strong> {{rental_days}} days<br>
+<strong>Rate Type:</strong> {{rate_type}}
+</p>
+
+<h3>Pricing Summary:</h3>
+<p>
+<strong>Daily Rate:</strong> {{daily_rate}}<br>
+<strong>Airport Fee:</strong> {{airport_fee}}<br>
+<strong>Total Price:</strong> {{total_price}}
+</p>
+
+<h3>Current Availability Status</h3>
+<p>We're currently building our fleet and don't have availability for your requested dates at this time. However, we'd love to keep you updated!</p>
+
+<h3>Join Our Waitlist</h3>
+<p>Would you like to join our waitlist? We'll notify you as soon as we have availability for your dates. Simply reply to this email or contact us directly.</p>
+
+<p>In the meantime, if you have any questions about Tesla rentals in Germany, charging, or our services, please don't hesitate to reach out.</p>
+
+<p>Best regards,<br>
+The VOLTVOYAGE Team</p>
+
+===========================================
+
+PLAIN TEXT VERSION:
+===========================================
+
+Thank You for Your Interest, {{customer_name}}!
+
+We've received your inquiry for a Tesla Model Y rental in Germany. We're excited to help make your trip stress-free!
+
+Your Rental Quote:
+Pickup Date: {{pickup_date}}
+Return Date: {{return_date}}
+Pickup Location: {{pickup_location}}
+Return Location: {{return_location}}
+Duration: {{rental_days}} days
+Rate Type: {{rate_type}}
+
+Pricing Summary:
+Daily Rate: {{daily_rate}}
+Airport Fee: {{airport_fee}}
+Total Price: {{total_price}}
+
+Current Availability Status
+We're currently building our fleet and don't have availability for your requested dates at this time. However, we'd love to keep you updated!
+
+Join Our Waitlist
+Would you like to join our waitlist? We'll notify you as soon as we have availability for your dates. Simply reply to this email or contact us directly.
+
+In the meantime, if you have any questions about Tesla rentals in Germany, charging, or our services, please don't hesitate to reach out.
+
+Best regards,
+The VOLTVOYAGE Team
+
+===========================================
+

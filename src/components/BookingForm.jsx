@@ -3,9 +3,14 @@ import emailjs from "@emailjs/browser";
 import "./BookingForm.css";
 
 // EmailJS Configuration
-const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "YOUR_SERVICE_ID";
-const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "YOUR_TEMPLATE_ID";
-const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
+const EMAILJS_SERVICE_ID =
+  import.meta.env.VITE_EMAILJS_SERVICE_ID || "YOUR_SERVICE_ID";
+const EMAILJS_TEMPLATE_ID =
+  import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "YOUR_TEMPLATE_ID";
+const EMAILJS_CUSTOMER_TEMPLATE_ID =
+  import.meta.env.VITE_EMAILJS_CUSTOMER_TEMPLATE_ID || "YOUR_CUSTOMER_TEMPLATE_ID";
+const EMAILJS_PUBLIC_KEY =
+  import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "YOUR_PUBLIC_KEY";
 
 const BookingForm = () => {
   const [pickupDate, setPickupDate] = useState("");
@@ -75,7 +80,10 @@ const BookingForm = () => {
           rental_days: pricing.days,
           rate_type: pricing.rateType,
           daily_rate: `€${pricing.dailyRate.toFixed(2)}/day`,
-          airport_fee: pricing.airportFee > 0 ? `€${pricing.airportFee.toFixed(2)}` : "€0.00",
+          airport_fee:
+            pricing.airportFee > 0
+              ? `€${pricing.airportFee.toFixed(2)}`
+              : "€0.00",
           total_price: `€${pricing.total.toFixed(2)}`,
         });
         // Simulate success for development
@@ -102,15 +110,48 @@ const BookingForm = () => {
         rental_days: pricing.days.toString(),
         rate_type: pricing.rateType,
         daily_rate: `€${pricing.dailyRate.toFixed(2)}/day`,
-        airport_fee: pricing.airportFee > 0 ? `€${pricing.airportFee.toFixed(2)}` : "€0.00",
+        airport_fee:
+          pricing.airportFee > 0
+            ? `€${pricing.airportFee.toFixed(2)}`
+            : "€0.00",
         total_price: `€${pricing.total.toFixed(2)}`,
       };
 
+      // Send email to business (your email)
       await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
         templateParams
       );
+
+      // Send auto-reply email to customer
+      if (
+        EMAILJS_CUSTOMER_TEMPLATE_ID &&
+        EMAILJS_CUSTOMER_TEMPLATE_ID !== "YOUR_CUSTOMER_TEMPLATE_ID"
+      ) {
+        const customerTemplateParams = {
+          customer_name: contactForm.name,
+          customer_email: contactForm.email,
+          pickup_date: pickupDate,
+          return_date: returnDate,
+          pickup_location: pickupLocation,
+          return_location: returnLocation,
+          rental_days: pricing.days.toString(),
+          rate_type: pricing.rateType,
+          daily_rate: `€${pricing.dailyRate.toFixed(2)}/day`,
+          airport_fee:
+            pricing.airportFee > 0
+              ? `€${pricing.airportFee.toFixed(2)}`
+              : "€0.00",
+          total_price: `€${pricing.total.toFixed(2)}`,
+        };
+
+        await emailjs.send(
+          EMAILJS_SERVICE_ID,
+          EMAILJS_CUSTOMER_TEMPLATE_ID,
+          customerTemplateParams
+        );
+      }
 
       setSubmitStatus("success");
       setContactForm({ name: "", email: "", phone: "", message: "" });
@@ -283,13 +324,9 @@ const BookingForm = () => {
                       <option value="Frankfurt Airport (FRA)">
                         Frankfurt Airport (FRA)
                       </option>
-                      <option value="Frankfurt City Center">
-                        Frankfurt City Center
+                      <option value="Mossautal Odenwald">
+                        Mossautal Odenwald
                       </option>
-                      <option value="Darmstadt">Darmstadt</option>
-                      <option value="Heidelberg">Heidelberg</option>
-                      <option value="Mannheim">Mannheim</option>
-                      <option value="Home Delivery">Home Delivery</option>
                     </select>
                   </div>
                   <div className="booking-form-field">
@@ -303,13 +340,9 @@ const BookingForm = () => {
                       <option value="Frankfurt Airport (FRA)">
                         Frankfurt Airport (FRA)
                       </option>
-                      <option value="Frankfurt City Center">
-                        Frankfurt City Center
+                      <option value="Mossautal Odenwald">
+                        Mossautal Odenwald
                       </option>
-                      <option value="Darmstadt">Darmstadt</option>
-                      <option value="Heidelberg">Heidelberg</option>
-                      <option value="Mannheim">Mannheim</option>
-                      <option value="Home Pickup">Home Pickup</option>
                     </select>
                   </div>
                 </div>
@@ -602,7 +635,9 @@ const BookingForm = () => {
                   className="booking-submit-button"
                   disabled={isSubmitting}
                 >
-                  <span>{isSubmitting ? "SUBMITTING..." : "SUBMIT REQUEST"}</span>
+                  <span>
+                    {isSubmitting ? "SUBMITTING..." : "SUBMIT REQUEST"}
+                  </span>
                   {!isSubmitting && (
                     <img
                       src="https://cdn.prod.website-files.com/682f02eb02aa737158465c60/68306c3cc50945add9f5302d_364f727b295f3c1bcc98a650dc543d2e_right-arrow.svg"

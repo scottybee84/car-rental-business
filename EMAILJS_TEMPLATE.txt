@@ -1,0 +1,69 @@
+===========================================
+EMAILJS TEMPLATE - COPY AND PASTE THIS
+===========================================
+
+SUBJECT LINE:
+New Tesla Rental Inquiry - {{customer_name}}
+
+EMAIL BODY (HTML):
+===========================================
+
+<h2>New Tesla Rental Inquiry</h2>
+
+<h3>Customer Information:</h3>
+<p>
+<strong>Name:</strong> {{customer_name}}<br>
+<strong>Email:</strong> {{customer_email}}<br>
+<strong>Phone:</strong> {{customer_phone}}
+</p>
+
+<h3>Rental Details:</h3>
+<p>
+<strong>Pickup Date:</strong> {{pickup_date}}<br>
+<strong>Return Date:</strong> {{return_date}}<br>
+<strong>Pickup Location:</strong> {{pickup_location}}<br>
+<strong>Return Location:</strong> {{return_location}}<br>
+<strong>Duration:</strong> {{rental_days}} days<br>
+<strong>Rate Type:</strong> {{rate_type}}
+</p>
+
+<h3>Pricing:</h3>
+<p>
+<strong>Daily Rate:</strong> {{daily_rate}}<br>
+<strong>Airport Fee:</strong> {{airport_fee}}<br>
+<strong>Total Price:</strong> {{total_price}}
+</p>
+
+<h3>Message:</h3>
+<p>{{customer_message}}</p>
+
+===========================================
+
+PLAIN TEXT VERSION (if HTML doesn't work):
+===========================================
+
+New Tesla Rental Inquiry
+
+Customer Information:
+Name: {{customer_name}}
+Email: {{customer_email}}
+Phone: {{customer_phone}}
+
+Rental Details:
+Pickup Date: {{pickup_date}}
+Return Date: {{return_date}}
+Pickup Location: {{pickup_location}}
+Return Location: {{return_location}}
+Duration: {{rental_days}} days
+Rate Type: {{rate_type}}
+
+Pricing:
+Daily Rate: {{daily_rate}}
+Airport Fee: {{airport_fee}}
+Total Price: {{total_price}}
+
+Message:
+{{customer_message}}
+
+===========================================
+
