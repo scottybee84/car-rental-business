@@ -71,7 +71,11 @@ const BlogPost = () => {
     "image": post.image,
     "datePublished": post.publishedAt,
     "dateModified": post.publishedAt || post.dateModified,
-    "author": {
+    "author": post.author ? {
+      "@type": "Person",
+      "name": post.author.name,
+      "description": post.author.bio || "Travel enthusiast and Tesla rental expert"
+    } : {
       "@type": "Organization",
       "name": "VoltVoyage"
     },
@@ -80,12 +84,12 @@ const BlogPost = () => {
       "name": "VoltVoyage",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://voltvoyages.com/logo.png"
+        "url": "https://voltvoyages.io/logo.png"
       }
     },
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `https://voltvoyages.com/blog-posts/${post.slug}`
+      "@id": `https://voltvoyages.io/blog-posts/${post.slug}`
     },
     "keywords": post.keywords?.join(', ') || '',
     "articleSection": post.category
@@ -101,7 +105,7 @@ const BlogPost = () => {
         url={`/blog-posts/${post.slug}`}
         type="article"
         structuredData={structuredData}
-        canonical={`https://voltvoyages.com/blog-posts/${post.slug}`}
+        canonical={`https://voltvoyages.io/blog-posts/${post.slug}`}
       />
       <Navbar />
       <main>
@@ -135,6 +139,11 @@ const BlogPost = () => {
                       day: 'numeric'
                     })}
                   </time>
+                )}
+                {post.author && (
+                  <span style={{ marginLeft: '1rem' }}>
+                    By <strong>{post.author.name}</strong>
+                  </span>
                 )}
               </div>
               <h1 style={{ 

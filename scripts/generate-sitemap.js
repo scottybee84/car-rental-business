@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function generateSitemap() {
-  const baseUrl = process.env.SITE_URL || 'https://voltvoyages.com';
+  const baseUrl = process.env.SITE_URL || 'https://voltvoyages.io';
   const currentDate = new Date().toISOString();
   
   // Read blog posts if they exist

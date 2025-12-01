@@ -22,7 +22,9 @@ const Navbar = () => {
               <h3 className="logo-text">VOLTVOYAGE</h3>
             </a>
           </div>
-          <div style={{ width: "40px" }}></div>
+          <a href="/blog" className="navbar-blog-button" aria-label="View Blog">
+            Blog
+          </a>
         </div>
       </div>
       <nav

@@ -1,0 +1,54 @@
+name: Generate Daily Blog Post
+
+on:
+  schedule:
+    # Run twice daily at 2 AM and 2 PM UTC
+    - cron: '0 2 * * *'  # 2 AM UTC
+    - cron: '0 14 * * *' # 2 PM UTC
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: write
+
+jobs:
+  generate-blog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install OpenAI SDK
+        run: npm install openai --legacy-peer-deps
+
+      - name: Generate blog post
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node scripts/generate-blog-post.js
+
+      - name: Regenerate sitemap
+        run: npm run generate-sitemap
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add src/data/blogPosts.json public/sitemap.xml
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-generate blog post [skip ci]"
+            git push
+          fi
+

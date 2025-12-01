@@ -6,26 +6,26 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
         xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
   <url>
-    <loc>https://voltvoyages.com/</loc>
-    <lastmod>2025-12-01T11:50:56.739Z</lastmod>
+    <loc>https://voltvoyages.io/</loc>
+    <lastmod>2025-12-01T12:54:12.889Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://voltvoyages.com/impressum</loc>
-    <lastmod>2025-12-01T11:50:56.739Z</lastmod>
+    <loc>https://voltvoyages.io/impressum</loc>
+    <lastmod>2025-12-01T12:54:12.889Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://voltvoyages.com/privacy-policy</loc>
-    <lastmod>2025-12-01T11:50:56.739Z</lastmod>
+    <loc>https://voltvoyages.io/privacy-policy</loc>
+    <lastmod>2025-12-01T12:54:12.889Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://voltvoyages.com/terms-of-service</loc>
-    <lastmod>2025-12-01T11:50:56.739Z</lastmod>
+    <loc>https://voltvoyages.io/terms-of-service</loc>
+    <lastmod>2025-12-01T12:54:12.889Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>

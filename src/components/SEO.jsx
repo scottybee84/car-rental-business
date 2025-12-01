@@ -11,7 +11,7 @@ const SEO = ({
   canonical,
   noindex = false,
 }) => {
-  const siteUrl = 'https://voltvoyages.com';
+  const siteUrl = 'https://voltvoyages.io';
   const defaultImage = `${siteUrl}/og-image.jpg`; // Add your default OG image
   const fullUrl = url ? `${siteUrl}${url}` : siteUrl;
   const fullImage = image || defaultImage;

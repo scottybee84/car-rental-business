@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import Impressum from "./pages/Impressum";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import "./App.css";
 
@@ -14,6 +15,7 @@ function App() {
         <Route path="/impressum" element={<Impressum />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/blog" element={<Blog />} />
         <Route path="/blog-posts/:slug" element={<BlogPost />} />
       </Routes>
     </Router>

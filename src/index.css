@@ -534,8 +534,8 @@ img {
   z-index: 2;
 }
 
-/* Hide search placeholder */
-.navbar-wrapper > div:last-child:not(nav) {
+/* Hide search placeholder - but not the blog button */
+.navbar-wrapper > div:last-child:not(nav):not(.navbar-blog-button) {
   width: 40px;
   visibility: hidden;
 }

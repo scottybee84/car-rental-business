@@ -1,6 +1,38 @@
+import { useNavigate, useLocation } from "react-router-dom";
 import "./Footer.css";
 
 const Footer = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleCheckAvailability = (e) => {
+    e.preventDefault();
+    
+    // If we're not on the home page, navigate there first
+    if (location.pathname !== "/") {
+      navigate("/", { state: { scrollToBooking: true } });
+      // Wait for navigation, then scroll
+      setTimeout(() => {
+        const formElement = document.querySelector(".booking-section-container");
+        if (formElement) {
+          formElement.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }, 100);
+    } else {
+      // We're already on home page, just scroll
+      const formElement = document.querySelector(".booking-section-container");
+      if (formElement) {
+        formElement.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }
+  };
+
   return (
     <section className="footer">
       <div className="content-wrapper">
@@ -103,18 +135,7 @@ const Footer = () => {
                 <a
                   href="#booking"
                   className="secondary-button w-inline-block"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const formElement = document.querySelector(
-                      ".booking-section-container"
-                    );
-                    if (formElement) {
-                      formElement.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start",
-                      });
-                    }
-                  }}
+                  onClick={handleCheckAvailability}
                 >
                   <div className="clip">
                     <div className="link-text-wrapper">

@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import TrustBadges from "../components/TrustBadges";
@@ -8,6 +10,23 @@ import Footer from "../components/Footer";
 import SEO from "../components/SEO";
 
 const Home = () => {
+  const location = useLocation();
+
+  // Handle scrolling to booking form when navigating from other pages
+  useEffect(() => {
+    if (location.state?.scrollToBooking) {
+      // Small delay to ensure page is rendered
+      setTimeout(() => {
+        const formElement = document.querySelector(".booking-section-container");
+        if (formElement) {
+          formElement.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }, 100);
+    }
+  }, [location.state]);
   // Structured Data for Home Page
   const structuredData = {
     "@context": "https://schema.org",
