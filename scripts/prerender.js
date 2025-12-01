@@ -247,29 +247,102 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
         // Wait for blog content to load (if it's a blog post)
         if (route.includes("/blog-posts/")) {
           await page
-            .waitForSelector(".blog-content", { timeout: 5000 })
+            .waitForSelector(".blog-content", { timeout: 10000 })
             .catch(() => {});
-          // Wait for content to load (replacement for deprecated waitForTimeout)
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          // Wait for content to load
+          await new Promise((resolve) => setTimeout(resolve, 3000));
         } else if (route === "/blog") {
           // Wait for blog list to load
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        } else {
+          // For other routes, wait for any content
           await new Promise((resolve) => setTimeout(resolve, 2000));
         }
 
-        // Get the base HTML and the rendered content separately
-        const baseHTML = await page.content();
+        // Wait a bit more to ensure all async content is loaded
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Get the rendered content from the DOM
         const renderedContent = await page.evaluate(() => {
           const root = document.getElementById("root");
-          return root ? root.innerHTML : "";
+          if (!root) {
+            console.error("Root element not found");
+            return "";
+          }
+
+          // Get all the HTML content from root
+          let content = root.innerHTML;
+
+          // Check if we have actual content
+          const hasChildren = root.children.length > 0;
+          const hasText =
+            root.textContent && root.textContent.trim().length > 0;
+
+          if (!content.trim() && (hasChildren || hasText)) {
+            // Content exists but innerHTML is empty, try to get it differently
+            content = Array.from(root.children)
+              .map((child) => child.outerHTML)
+              .join("");
+            if (!content && hasText) {
+              // Fallback: at least get the text content
+              content = root.textContent;
+            }
+          }
+
+          return content || "";
         });
 
-        // Inject the rendered content into the HTML
+        // Get the base HTML
+        const baseHTML = await page.content();
+
+        // Inject the rendered content into the HTML using string manipulation (safer than regex)
         let html = baseHTML;
-        if (renderedContent.trim()) {
-          // Replace the empty root div with the rendered content
-          html = html.replace(
-            /<div id="root"><\/div>/,
-            `<div id="root">${renderedContent}</div>`
+        const contentLength = renderedContent ? renderedContent.length : 0;
+
+        if (renderedContent && renderedContent.trim()) {
+          // Find the root div tag and replace its content
+          const rootDivStart = html.indexOf('<div id="root"');
+          if (rootDivStart !== -1) {
+            // Find where the root div starts
+            const rootDivTagEnd = html.indexOf(">", rootDivStart);
+            if (rootDivTagEnd !== -1) {
+              // Find where the root div closes (first </div> after the opening tag)
+              const rootDivEnd = html.indexOf("</div>", rootDivTagEnd);
+              if (rootDivEnd !== -1) {
+                // Replace everything between the opening and closing tags
+                const beforeRoot = html.substring(0, rootDivTagEnd + 1);
+                const afterRoot = html.substring(rootDivEnd);
+                html = beforeRoot + renderedContent + afterRoot;
+
+                // Verify the replacement worked
+                if (
+                  !html.includes(
+                    renderedContent.substring(
+                      0,
+                      Math.min(50, renderedContent.length)
+                    )
+                  )
+                ) {
+                  console.warn(
+                    `⚠️  Content injection may have failed for route: ${route}`
+                  );
+                }
+              } else {
+                console.warn(
+                  `⚠️  Could not find closing tag for root div in route: ${route}`
+                );
+              }
+            } else {
+              console.warn(
+                `⚠️  Could not find root div tag end in route: ${route}`
+              );
+            }
+          } else {
+            console.warn(`⚠️  Could not find root div in route: ${route}`);
+          }
+        } else {
+          console.warn(
+            `⚠️  No content captured for route: ${route} (content length: ${contentLength})`
           );
         }
 
