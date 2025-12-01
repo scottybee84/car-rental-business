@@ -31,6 +31,17 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Show blog posts before build
+        run: |
+          if [ -f src/data/blogPosts.json ]; then
+            echo "📝 Blog posts found:"
+            cat src/data/blogPosts.json | jq -r 'length' || echo "0"
+            echo "📄 Blog post URLs:"
+            cat src/data/blogPosts.json | jq -r '.[] | "https://voltvoyages.io/blog-posts/\(.slug)"' || echo "None"
+          else
+            echo "⚠️ No blog posts file found"
+          fi
+
       - name: Build
         run: npm run build
         env:
@@ -40,14 +51,34 @@ jobs:
           VITE_EMAILJS_CUSTOMER_TEMPLATE_ID: ${{ secrets.VITE_EMAILJS_CUSTOMER_TEMPLATE_ID }}
           SITE_URL: ${{ secrets.SITE_URL || 'https://voltvoyages.io' }}
 
+      - name: Show generated sitemap
+        run: |
+          if [ -f public/sitemap.xml ]; then
+            echo "🗺️ Sitemap URLs:"
+            grep -o '<loc>[^<]*</loc>' public/sitemap.xml | sed 's/<loc>//g' | sed 's/<\/loc>//g'
+            echo ""
+            echo "📊 Total URLs: $(grep -c '<url>' public/sitemap.xml || echo '0')"
+          fi
+
       - name: Copy blog posts data to dist
         run: |
           mkdir -p dist/src/data
-          cp src/data/blogPosts.json dist/src/data/blogPosts.json 2>/dev/null || echo '[]' > dist/src/data/blogPosts.json
+          if [ -f src/data/blogPosts.json ]; then
+            cp src/data/blogPosts.json dist/src/data/blogPosts.json
+            echo "✅ Copied blog posts to dist ($(cat src/data/blogPosts.json | jq -r 'length' || echo '0') posts)"
+          else
+            echo '[]' > dist/src/data/blogPosts.json
+            echo "⚠️ No blog posts file found, created empty array"
+          fi
 
       - name: Copy sitemap and robots.txt to dist
         run: |
-          cp public/sitemap.xml dist/sitemap.xml 2>/dev/null || echo 'Sitemap not found, will be generated'
+          if [ -f public/sitemap.xml ]; then
+            cp public/sitemap.xml dist/sitemap.xml
+            echo "✅ Copied sitemap to dist ($(grep -c '<url>' public/sitemap.xml || echo '0') URLs)"
+          else
+            echo "⚠️ Sitemap not found in public/"
+          fi
           cp public/robots.txt dist/robots.txt
 
       - name: Copy index.html to 404.html for GitHub Pages routing

@@ -37,8 +37,25 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node scripts/generate-blog-post.js
 
+      - name: Show generated blog post info
+        run: |
+          if [ -f src/data/blogPosts.json ]; then
+            echo "📝 Blog posts in file:"
+            cat src/data/blogPosts.json | jq -r '.[0] | "Title: \(.title)\nSlug: \(.slug)\nURL: https://voltvoyages.io/blog-posts/\(.slug)"' || echo "Could not parse blog posts"
+          fi
+
       - name: Regenerate sitemap
         run: npm run generate-sitemap
+
+      - name: Show sitemap info
+        run: |
+          if [ -f public/sitemap.xml ]; then
+            echo "🗺️ Sitemap URLs:"
+            grep -o '<loc>[^<]*</loc>' public/sitemap.xml | sed 's/<loc>//g' | sed 's/<\/loc>//g' | head -10
+            echo ""
+            echo "📊 Total URLs in sitemap:"
+            grep -c '<url>' public/sitemap.xml || echo "0"
+          fi
 
       - name: Commit and push changes
         run: |
@@ -50,5 +67,10 @@ jobs:
           else
             git commit -m "Auto-generate blog post [skip ci]"
             git push
+            echo "✅ Changes pushed. Blog post will be available at:"
+            if [ -f src/data/blogPosts.json ]; then
+              cat src/data/blogPosts.json | jq -r '.[0] | "https://voltvoyages.io/blog-posts/\(.slug)"' || echo "Could not determine URL"
+            fi
+            echo "📄 Sitemap updated at: https://voltvoyages.io/sitemap.xml"
           fi
 

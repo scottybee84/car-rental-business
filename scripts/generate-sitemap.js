@@ -69,7 +69,19 @@ ${urls.map(url => `  <url>
   // Write to public directory
   const sitemapPath = path.join(__dirname, '../public/sitemap.xml');
   fs.writeFileSync(sitemapPath, sitemap);
+  
+  // Log detailed information
   console.log(`✅ Sitemap generated with ${urls.length} URLs: ${sitemapPath}`);
+  console.log(`📊 Static pages: ${staticPages.length}, Blog posts: ${blogUrls.length}`);
+  if (blogUrls.length > 0) {
+    console.log(`📝 Blog post URLs:`);
+    blogUrls.slice(0, 5).forEach(url => {
+      console.log(`   - ${baseUrl}${url.loc}`);
+    });
+    if (blogUrls.length > 5) {
+      console.log(`   ... and ${blogUrls.length - 5} more`);
+    }
+  }
   
   // Also copy to dist during build
   return sitemap;
