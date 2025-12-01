@@ -29,7 +29,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build
         run: npm run build
@@ -38,7 +38,7 @@ jobs:
           VITE_EMAILJS_PUBLIC_KEY: ${{ secrets.VITE_EMAILJS_PUBLIC_KEY }}
           VITE_EMAILJS_TEMPLATE_ID: ${{ secrets.VITE_EMAILJS_TEMPLATE_ID }}
           VITE_EMAILJS_CUSTOMER_TEMPLATE_ID: ${{ secrets.VITE_EMAILJS_CUSTOMER_TEMPLATE_ID }}
-          SITE_URL: ${{ secrets.SITE_URL || 'https://voltvoyage.com' }}
+          SITE_URL: ${{ secrets.SITE_URL || 'https://voltvoyages.com' }}
 
       - name: Copy blog posts data to dist
         run: |
