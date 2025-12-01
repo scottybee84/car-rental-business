@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,7 +39,7 @@ const blogTopics = [
   "Emergency Contacts: What to Do If Your Tesla Breaks Down",
   "Tesla Model Y Range: How Far Can You Go in Germany?",
   "Romantic Road: Driving Germany's Scenic Route in a Tesla",
-  
+
   // Additional Topics (100+ more for variety)
   "Tesla Model Y Performance: Acceleration on German Highways",
   "Charging Etiquette: Best Practices at German EV Stations",
@@ -129,44 +129,95 @@ const blogTopics = [
   "Westerwald: Rural Germany Tesla Tour",
   "Tesla Rental Benefits: Why Choose Electric",
   "German Charging Networks: Complete Overview",
-  "Tesla Model Y Stories: Real Traveler Experiences"
+  "Tesla Model Y Stories: Real Traveler Experiences",
 ];
 
 // Author names pool - diverse and realistic
 const authorNames = [
-  "Sarah Mitchell", "Michael Chen", "Emily Rodriguez", "David Thompson",
-  "Jessica Williams", "James Anderson", "Amanda Martinez", "Robert Taylor",
-  "Lisa Johnson", "Christopher Brown", "Maria Garcia", "Daniel Wilson",
-  "Jennifer Davis", "Matthew Miller", "Ashley Moore", "Andrew Jackson",
-  "Nicole White", "Kevin Harris", "Stephanie Clark", "Ryan Lewis",
-  "Rachel Walker", "Justin Hall", "Lauren Allen", "Brandon Young",
-  "Megan King", "Tyler Wright", "Brittany Lopez", "Jordan Hill",
-  "Kayla Green", "Cameron Adams", "Samantha Baker", "Nathan Nelson",
-  "Olivia Carter", "Ethan Mitchell", "Hannah Roberts", "Logan Turner",
-  "Sophia Phillips", "Noah Campbell", "Isabella Parker", "Lucas Evans",
-  "Emma Edwards", "Mason Collins", "Ava Stewart", "Aiden Sanchez",
-  "Chloe Morris", "Liam Rogers", "Grace Reed", "Owen Cook",
-  "Lily Morgan", "Carter Bell", "Zoe Murphy", "Wyatt Bailey",
-  "Aria Rivera", "Grayson Cooper", "Nora Richardson", "Jack Cox",
-  "Maya Howard", "Luke Ward", "Ella Torres", "Henry Peterson",
-  "Layla Gray", "Sebastian Ramirez", "Natalie James", "Julian Watson"
+  "Sarah Mitchell",
+  "Michael Chen",
+  "Emily Rodriguez",
+  "David Thompson",
+  "Jessica Williams",
+  "James Anderson",
+  "Amanda Martinez",
+  "Robert Taylor",
+  "Lisa Johnson",
+  "Christopher Brown",
+  "Maria Garcia",
+  "Daniel Wilson",
+  "Jennifer Davis",
+  "Matthew Miller",
+  "Ashley Moore",
+  "Andrew Jackson",
+  "Nicole White",
+  "Kevin Harris",
+  "Stephanie Clark",
+  "Ryan Lewis",
+  "Rachel Walker",
+  "Justin Hall",
+  "Lauren Allen",
+  "Brandon Young",
+  "Megan King",
+  "Tyler Wright",
+  "Brittany Lopez",
+  "Jordan Hill",
+  "Kayla Green",
+  "Cameron Adams",
+  "Samantha Baker",
+  "Nathan Nelson",
+  "Olivia Carter",
+  "Ethan Mitchell",
+  "Hannah Roberts",
+  "Logan Turner",
+  "Sophia Phillips",
+  "Noah Campbell",
+  "Isabella Parker",
+  "Lucas Evans",
+  "Emma Edwards",
+  "Mason Collins",
+  "Ava Stewart",
+  "Aiden Sanchez",
+  "Chloe Morris",
+  "Liam Rogers",
+  "Grace Reed",
+  "Owen Cook",
+  "Lily Morgan",
+  "Carter Bell",
+  "Zoe Murphy",
+  "Wyatt Bailey",
+  "Aria Rivera",
+  "Grayson Cooper",
+  "Nora Richardson",
+  "Jack Cox",
+  "Maya Howard",
+  "Luke Ward",
+  "Ella Torres",
+  "Henry Peterson",
+  "Layla Gray",
+  "Sebastian Ramirez",
+  "Natalie James",
+  "Julian Watson",
 ];
 
-const siteUrl = 'https://voltvoyages.io';
+const siteUrl = "https://voltvoyages.io";
 
 // Generate unique topic variation based on date and time
 function getUniqueTopic(date) {
-  const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+  const dayOfYear = Math.floor(
+    (date - new Date(date.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24
+  );
   const hour = date.getHours();
   const minutes = date.getMinutes();
-  
+
   // Use day of year + hour for topic selection (ensures 2 different topics per day)
-  const topicIndex = (dayOfYear * 2 + Math.floor(hour / 12)) % blogTopics.length;
+  const topicIndex =
+    (dayOfYear * 2 + Math.floor(hour / 12)) % blogTopics.length;
   const baseTopic = blogTopics[topicIndex];
-  
+
   // Add variation based on minutes to ensure uniqueness even if run at same time
   const variationSeed = dayOfYear * 24 * 60 + hour * 60 + minutes;
-  
+
   // Create unique variation by adding context
   const variations = [
     `${baseTopic}`,
@@ -176,26 +227,33 @@ function getUniqueTopic(date) {
     `${baseTopic}: Insider Secrets`,
     `${baseTopic}: The Ultimate Guide`,
     `${baseTopic}: Tips from Experience`,
-    `${baseTopic}: What You Should Know`
+    `${baseTopic}: What You Should Know`,
   ];
-  
+
   const variationIndex = variationSeed % variations.length;
   return variations[variationIndex];
 }
 
-// Select random author based on date for consistency
+// Select random author based on date for consistency but with more variation
 function getAuthorForDate(date) {
-  const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+  const dayOfYear = Math.floor(
+    (date - new Date(date.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24
+  );
   const hour = date.getHours();
-  const seed = dayOfYear * 24 + hour;
+  const minutes = date.getMinutes();
+  // Ensure different authors for morning (0-11) vs afternoon (12-23) runs
+  // Use day of year * 2 to account for two posts per day, plus hour offset
+  const isAfternoon = hour >= 12 ? 1 : 0;
+  // Add minutes for additional variation
+  const seed = (dayOfYear * 2 + isAfternoon) * 1000 + (hour * 60 + minutes);
   return authorNames[seed % authorNames.length];
 }
 
 async function generateBlogPost() {
   const AI_API_KEY = process.env.OPENAI_API_KEY;
-  
+
   if (!AI_API_KEY) {
-    console.error('❌ OPENAI_API_KEY environment variable not set');
+    console.error("❌ OPENAI_API_KEY environment variable not set");
     process.exit(1);
   }
 
@@ -207,8 +265,12 @@ async function generateBlogPost() {
   console.log(`👤 Author: ${author}`);
 
   try {
-    const blogContent = await generateWithOpenAI(selectedTopic, AI_API_KEY, author);
-    
+    const blogContent = await generateWithOpenAI(
+      selectedTopic,
+      AI_API_KEY,
+      author
+    );
+
     // Create blog post object
     const blogPost = {
       title: blogContent.title,
@@ -217,30 +279,42 @@ async function generateBlogPost() {
       readTime: blogContent.readTime,
       content: blogContent.content,
       excerpt: blogContent.excerpt,
-      image: blogContent.image || 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=1200&h=630&fit=crop',
+      image:
+        blogContent.image ||
+        "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=1200&h=630&fit=crop",
       featured: false,
       publishedAt: today.toISOString(),
       keywords: blogContent.keywords || [],
       author: {
         name: author,
-        bio: `Travel enthusiast and Tesla rental expert with extensive experience exploring Germany.`
-      }
+        bio: `Travel enthusiast and Tesla rental expert with extensive experience exploring Germany.`,
+      },
     };
 
     // Read existing blog posts
-    const blogPostsPath = path.join(__dirname, '../src/data/blogPosts.json');
+    const blogPostsPath = path.join(__dirname, "../src/data/blogPosts.json");
     let blogPosts = [];
-    
+
     if (fs.existsSync(blogPostsPath)) {
-      const fileContent = fs.readFileSync(blogPostsPath, 'utf-8');
+      const fileContent = fs.readFileSync(blogPostsPath, "utf-8");
       blogPosts = JSON.parse(fileContent);
     }
 
-    // Check if post with same slug already exists
-    const existingPost = blogPosts.find(p => p.slug === blogPost.slug);
-    if (existingPost) {
-      console.log(`⚠️  Post with slug ${blogPost.slug} already exists. Skipping.`);
-      return;
+    // Check if post with same slug already exists - if so, make it unique
+    let finalSlug = blogPost.slug;
+    let slugSuffix = 1;
+    while (blogPosts.find((p) => p.slug === finalSlug)) {
+      // Add a suffix to make the slug unique
+      const baseSlug = blogPost.slug.replace(/-\d+$/, ""); // Remove any existing suffix
+      finalSlug = `${baseSlug}-${slugSuffix}`;
+      slugSuffix++;
+    }
+
+    if (finalSlug !== blogPost.slug) {
+      console.log(
+        `⚠️  Slug ${blogPost.slug} already exists. Using unique slug: ${finalSlug}`
+      );
+      blogPost.slug = finalSlug;
     }
 
     // Add new post at the beginning
@@ -258,13 +332,13 @@ async function generateBlogPost() {
 
     return blogPost;
   } catch (error) {
-    console.error('❌ Error generating blog post:', error.message);
+    console.error("❌ Error generating blog post:", error.message);
     throw error;
   }
 }
 
 async function generateWithOpenAI(topic, apiKey, authorName) {
-  const OpenAI = (await import('openai')).default;
+  const OpenAI = (await import("openai")).default;
   const openai = new OpenAI({ apiKey });
 
   const prompt = `Write a comprehensive, SEO-optimized blog post about "${topic}" for a Tesla Model Y rental company in Germany targeting U.S. travelers.
@@ -346,7 +420,9 @@ BAD: "It is important to note that Tesla vehicles provide excellent acceleration
 GOOD: "Here's what most people don't realize: charging in Germany is actually easier than you think."
 BAD: "It should be noted that the charging infrastructure in Germany is well-developed."
 
-Return a JSON object with: title, slug (URL-friendly, lowercase, hyphens, must be unique), category, readTime (e.g., "6 min read" or "8 min read"), content (HTML formatted with all links), excerpt, keywords (array of 8-12), image (optional URL)`;
+Return a JSON object with: title, slug (URL-friendly, lowercase, hyphens, MUST be unique - include specific details from the topic to ensure uniqueness, avoid generic slugs like "tesla-rental-guide"), category, readTime (e.g., "6 min read" or "8 min read"), content (HTML formatted with all links), excerpt, keywords (array of 8-12), image (optional URL)
+
+IMPORTANT: The slug must be unique and specific. Include location, specific topic details, or unique aspects to avoid collisions. For example, instead of "tesla-rental-guide", use "tesla-rental-mileage-limits-germany" or "tesla-charging-etiquette-frankfurt".`;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -354,50 +430,53 @@ Return a JSON object with: title, slug (URL-friendly, lowercase, hyphens, must b
       messages: [
         {
           role: "system",
-          content: `You are ${authorName}, an expert travel writer and SEO content specialist. You write in a natural, conversational style that engages readers while optimizing for search engines. Your content sounds human-written, not AI-generated. Always write from first-person perspective as ${authorName}. Always return valid JSON.`
+          content: `You are ${authorName}, an expert travel writer and SEO content specialist. You write in a natural, conversational style that engages readers while optimizing for search engines. Your content sounds human-written, not AI-generated. Always write from first-person perspective as ${authorName}. Always return valid JSON.`,
         },
         {
           role: "user",
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       response_format: { type: "json_object" },
       temperature: 0.9, // Higher temperature for more natural, varied writing
-      max_tokens: 4000
+      max_tokens: 4000,
     });
 
     const response = JSON.parse(completion.choices[0].message.content);
-    
+
     // Post-process to ensure internal links are correct
     if (response.content) {
       // Ensure main site links are absolute
       response.content = response.content.replace(
         /<a href="(?!https?:\/\/)([^"]+)">/g,
         (match, url) => {
-          if (url.startsWith('/')) {
+          if (url.startsWith("/")) {
             return `<a href="${siteUrl}${url}">`;
           }
           return match;
         }
       );
     }
-    
+
     return response;
   } catch (error) {
-    console.error('OpenAI API Error:', error);
+    console.error("OpenAI API Error:", error);
     throw error;
   }
 }
 
 // Run if called directly
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.includes('generate-blog-post')) {
+if (
+  import.meta.url === `file://${process.argv[1]}` ||
+  process.argv[1]?.includes("generate-blog-post")
+) {
   generateBlogPost()
     .then(() => {
-      console.log('✅ Blog post generation complete!');
+      console.log("✅ Blog post generation complete!");
       process.exit(0);
     })
     .catch((error) => {
-      console.error('❌ Error generating blog post:', error);
+      console.error("❌ Error generating blog post:", error);
       process.exit(1);
     });
 }

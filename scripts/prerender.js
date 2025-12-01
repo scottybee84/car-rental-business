@@ -779,6 +779,21 @@ async function prerenderRoutes() {
         console.log(
           `\n📊 Blog posts: ${prerenderedPosts} prerendered, ${cachedPosts} from cache, ${failedPosts} failed`
         );
+
+        // Show cache status
+        if (prerenderedPosts > 0) {
+          console.log(
+            `💾 Cache created: ${prerenderedPosts} posts cached for next build`
+          );
+          console.log(
+            `   (Cache will be reused on next build if posts haven't changed)`
+          );
+        }
+        if (cachedPosts > 0) {
+          console.log(
+            `✅ Cache working: ${cachedPosts} posts loaded from cache`
+          );
+        }
       }
     } catch (error) {
       console.warn("⚠️  Could not prerender blog posts:", error.message);
