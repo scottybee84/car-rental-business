@@ -1,0 +1,52 @@
+/* Blog Post Styles */
+.blog-post {
+  color: #ffffff;
+}
+
+.blog-content {
+  color: #ffffff !important;
+}
+
+/* Ensure all text elements in blog content are white */
+.blog-content p,
+.blog-content h1,
+.blog-content h2,
+.blog-content h3,
+.blog-content h4,
+.blog-content h5,
+.blog-content h6,
+.blog-content li,
+.blog-content span,
+.blog-content div,
+.blog-content a {
+  color: #ffffff !important;
+}
+
+/* Links should be slightly lighter for visibility */
+.blog-content a {
+  color: #ffffff !important;
+  text-decoration: underline;
+  opacity: 0.9;
+}
+
+.blog-content a:hover {
+  opacity: 1;
+}
+
+/* Ensure strong/bold text is also white */
+.blog-content strong,
+.blog-content b {
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+/* Lists should be white */
+.blog-content ul,
+.blog-content ol {
+  color: #ffffff !important;
+}
+
+.blog-content li {
+  color: #ffffff !important;
+}
+

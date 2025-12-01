@@ -1,8 +1,9 @@
-import { useParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import SEO from '../components/SEO';
+import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import SEO from "../components/SEO";
+import "./BlogPost.css";
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -11,13 +12,13 @@ const BlogPost = () => {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    fetch('/src/data/blogPosts.json')
-      .then(res => res.json())
-      .then(data => {
-        const foundPost = Array.isArray(data) 
-          ? data.find(p => p.slug === slug)
+    fetch("/src/data/blogPosts.json")
+      .then((res) => res.json())
+      .then((data) => {
+        const foundPost = Array.isArray(data)
+          ? data.find((p) => p.slug === slug)
           : null;
-        
+
         if (foundPost) {
           setPost(foundPost);
         } else {
@@ -25,8 +26,8 @@ const BlogPost = () => {
         }
         setLoading(false);
       })
-      .catch(err => {
-        console.error('Error loading blog post:', err);
+      .catch((err) => {
+        console.error("Error loading blog post:", err);
         setNotFound(true);
         setLoading(false);
       });
@@ -37,7 +38,10 @@ const BlogPost = () => {
       <div className="page-wrapper">
         <Navbar />
         <main>
-          <div className="content-wrapper" style={{ padding: '4rem 0', textAlign: 'center' }}>
+          <div
+            className="content-wrapper"
+            style={{ padding: "4rem 0", textAlign: "center", color: "#ffffff" }}
+          >
             <p>Loading...</p>
           </div>
         </main>
@@ -51,10 +55,17 @@ const BlogPost = () => {
       <div className="page-wrapper">
         <Navbar />
         <main>
-          <div className="content-wrapper" style={{ padding: '4rem 0', textAlign: 'center' }}>
-            <h1>Post Not Found</h1>
-            <p>The blog post you're looking for doesn't exist.</p>
-            <a href="/">Return to Home</a>
+          <div
+            className="content-wrapper"
+            style={{ padding: "4rem 0", textAlign: "center", color: "#ffffff" }}
+          >
+            <h1 style={{ color: "#ffffff" }}>Post Not Found</h1>
+            <p style={{ color: "#ffffff" }}>
+              The blog post you're looking for doesn't exist.
+            </p>
+            <a href="/" style={{ color: "#ffffff" }}>
+              Return to Home
+            </a>
           </div>
         </main>
         <Footer />
@@ -66,41 +77,48 @@ const BlogPost = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    "headline": post.title,
-    "description": post.excerpt || post.description,
-    "image": post.image,
-    "datePublished": post.publishedAt,
-    "dateModified": post.publishedAt || post.dateModified,
-    "author": post.author ? {
-      "@type": "Person",
-      "name": post.author.name,
-      "description": post.author.bio || "Travel enthusiast and Tesla rental expert"
-    } : {
+    headline: post.title,
+    description: post.excerpt || post.description,
+    image: post.image,
+    datePublished: post.publishedAt,
+    dateModified: post.publishedAt || post.dateModified,
+    author: post.author
+      ? {
+          "@type": "Person",
+          name: post.author.name,
+          description:
+            post.author.bio || "Travel enthusiast and Tesla rental expert",
+        }
+      : {
+          "@type": "Organization",
+          name: "VoltVoyage",
+        },
+    publisher: {
       "@type": "Organization",
-      "name": "VoltVoyage"
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "VoltVoyage",
-      "logo": {
+      name: "VoltVoyage",
+      logo: {
         "@type": "ImageObject",
-        "url": "https://voltvoyages.io/logo.png"
-      }
+        url: "https://voltvoyages.io/logo.png",
+      },
     },
-    "mainEntityOfPage": {
+    mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://voltvoyages.io/blog-posts/${post.slug}`
+      "@id": `https://voltvoyages.io/blog-posts/${post.slug}`,
     },
-    "keywords": post.keywords?.join(', ') || '',
-    "articleSection": post.category
+    keywords: post.keywords?.join(", ") || "",
+    articleSection: post.category,
   };
 
   return (
     <div className="page-wrapper">
       <SEO
         title={`${post.title} | VoltVoyage Blog`}
-        description={post.excerpt || post.description || `Read about ${post.title} on VoltVoyage`}
-        keywords={post.keywords?.join(', ')}
+        description={
+          post.excerpt ||
+          post.description ||
+          `Read about ${post.title} on VoltVoyage`
+        }
+        keywords={post.keywords?.join(", ")}
         image={post.image}
         url={`/blog-posts/${post.slug}`}
         type="article"
@@ -109,84 +127,101 @@ const BlogPost = () => {
       />
       <Navbar />
       <main>
-        <article className="blog-post" style={{ padding: '4rem 0' }}>
-          <div className="content-wrapper" style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <header style={{ marginBottom: '2rem' }}>
-              <div style={{ 
-                display: 'flex', 
-                gap: '1rem', 
-                alignItems: 'center', 
-                marginBottom: '1rem',
-                fontSize: '0.9rem',
-                color: '#666'
-              }}>
+        <article className="blog-post" style={{ padding: "4rem 0" }}>
+          <div
+            className="content-wrapper"
+            style={{ maxWidth: "800px", margin: "0 auto" }}
+          >
+            <header style={{ marginBottom: "2rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1rem",
+                  alignItems: "center",
+                  marginBottom: "1rem",
+                  fontSize: "0.9rem",
+                  color: "#ffffff",
+                }}
+              >
                 {post.category && (
-                  <span style={{
-                    padding: '0.25rem 0.75rem',
-                    backgroundColor: '#f0f0f0',
-                    borderRadius: '4px',
-                    fontWeight: '500'
-                  }}>
+                  <span
+                    style={{
+                      padding: "0.25rem 0.75rem",
+                      backgroundColor: "rgba(255, 255, 255, 0.2)",
+                      borderRadius: "4px",
+                      fontWeight: "500",
+                      color: "#ffffff",
+                    }}
+                  >
                     {post.category}
                   </span>
                 )}
                 {post.readTime && <span>{post.readTime}</span>}
                 {post.publishedAt && (
                   <time dateTime={post.publishedAt}>
-                    {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
+                    {new Date(post.publishedAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
                     })}
                   </time>
                 )}
                 {post.author && (
-                  <span style={{ marginLeft: '1rem' }}>
-                    By <strong>{post.author.name}</strong>
+                  <span style={{ marginLeft: "1rem", color: "#ffffff" }}>
+                    By{" "}
+                    <strong style={{ color: "#ffffff" }}>
+                      {post.author.name}
+                    </strong>
                   </span>
                 )}
               </div>
-              <h1 style={{ 
-                fontSize: '2.5rem', 
-                lineHeight: '1.2', 
-                marginBottom: '1rem',
-                fontWeight: '700'
-              }}>
+              <h1
+                style={{
+                  fontSize: "2.5rem",
+                  lineHeight: "1.2",
+                  marginBottom: "1rem",
+                  fontWeight: "700",
+                  color: "#ffffff",
+                }}
+              >
                 {post.title}
               </h1>
               {post.excerpt && (
-                <p style={{ 
-                  fontSize: '1.25rem', 
-                  color: '#666', 
-                  lineHeight: '1.6',
-                  marginBottom: '2rem'
-                }}>
+                <p
+                  style={{
+                    fontSize: "1.25rem",
+                    color: "#ffffff",
+                    lineHeight: "1.6",
+                    marginBottom: "2rem",
+                    opacity: 0.9,
+                  }}
+                >
                   {post.excerpt}
                 </p>
               )}
             </header>
-            
+
             {post.image && (
-              <img 
-                src={post.image} 
-                alt={post.title} 
+              <img
+                src={post.image}
+                alt={post.title}
                 style={{
-                  width: '100%',
-                  height: 'auto',
-                  borderRadius: '8px',
-                  marginBottom: '2rem'
+                  width: "100%",
+                  height: "auto",
+                  borderRadius: "8px",
+                  marginBottom: "2rem",
                 }}
                 loading="eager"
               />
             )}
-            
-            <div 
-              className="blog-content" 
+
+            <div
+              className="blog-content"
               dangerouslySetInnerHTML={{ __html: post.content }}
               style={{
-                fontSize: '1.1rem',
-                lineHeight: '1.8',
-                color: '#333'
+                fontSize: "1.1rem",
+                lineHeight: "1.8",
+                color: "#ffffff",
               }}
             />
           </div>
@@ -198,4 +233,3 @@ const BlogPost = () => {
 };
 
 export default BlogPost;
-
