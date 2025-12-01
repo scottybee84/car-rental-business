@@ -654,9 +654,20 @@ async function prerenderRoutes() {
   const cacheDir = join(__dirname, "../prerendered");
   const cacheIndexPath = join(cacheDir, "cache-index.json");
 
+  // Show cache directory location
+  console.log(`📁 Cache directory: ${cacheDir}`);
+
   // Load cache index (tracks which posts are cached and their metadata)
   let cacheIndex = {};
   const cacheIndexExists = existsSync(cacheIndexPath);
+  const cacheDirExists = existsSync(cacheDir);
+
+  if (cacheDirExists) {
+    console.log(`📁 Cache directory exists`);
+  } else {
+    console.log(`📁 Cache directory does not exist - will be created`);
+  }
+
   if (cacheIndexExists) {
     try {
       cacheIndex = JSON.parse(readFileSync(cacheIndexPath, "utf-8"));
@@ -669,7 +680,9 @@ async function prerenderRoutes() {
       cacheIndex = {};
     }
   } else {
-    console.log(`📦 No cache index found - will create new cache`);
+    console.log(
+      `📦 No cache index found at ${cacheIndexPath} - will create new cache`
+    );
   }
 
   if (existsSync(blogPostsPath)) {
@@ -776,6 +789,10 @@ async function prerenderRoutes() {
           "utf-8"
         );
 
+        // Verify cache was saved
+        const cacheIndexSaved = existsSync(cacheIndexPath);
+        const cacheEntriesCount = Object.keys(newCacheIndex).length;
+
         console.log(
           `\n📊 Blog posts: ${prerenderedPosts} prerendered, ${cachedPosts} from cache, ${failedPosts} failed`
         );
@@ -785,6 +802,10 @@ async function prerenderRoutes() {
           console.log(
             `💾 Cache created: ${prerenderedPosts} posts cached for next build`
           );
+          console.log(
+            `   Cache index saved: ${cacheIndexSaved ? "✅" : "❌"} (${cacheEntriesCount} entries)`
+          );
+          console.log(`   Cache location: ${cacheDir}`);
           console.log(
             `   (Cache will be reused on next build if posts haven't changed)`
           );
