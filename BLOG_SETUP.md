@@ -30,12 +30,14 @@
 ## 🧪 Step 2: Test the Script Locally (Optional)
 
 ```bash
-# Set your API key as environment variable
-export
+# Set your API key as environment variable (DO NOT commit this!)
+export OPENAI_API_KEY="your-api-key-here"
 
 # Run the script
 node scripts/generate-blog-post.js
 ```
+
+**⚠️ WARNING:** Never commit your actual API key to the repository!
 
 ## 🚀 Step 3: Trigger First Blog Post
 
