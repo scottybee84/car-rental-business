@@ -233,33 +233,60 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
       try {
         const browser = await puppeteer.launch({
           headless: true,
-          args: ["--no-sandbox", "--disable-setuid-sandbox"],
+          args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
+            "--no-first-run",
+            "--no-zygote",
+            "--single-process"
+          ],
+          // Use a more compatible browser
+          executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
         });
 
         const page = await browser.newPage();
+        
+        // Set viewport for consistent rendering
+        await page.setViewport({ width: 1280, height: 720 });
 
         // Enable console logging to see React errors
         page.on("console", (msg) => {
           const type = msg.type();
           const text = msg.text();
-          if (type === "error") {
-            console.log(`   Browser console error: ${text}`);
+          // Log all console messages for debugging
+          if (type === "error" || type === "warning") {
+            console.log(`   Browser ${type}: ${text}`);
           }
         });
 
         page.on("pageerror", (error) => {
           console.log(`   Page error: ${error.message}`);
+          console.log(`   Stack: ${error.stack}`);
+        });
+        
+        // Log failed requests
+        page.on("requestfailed", (request) => {
+          console.log(`   Failed request: ${request.url()} - ${request.failure().errorText}`);
         });
 
         // Navigate to the route
+        // Note: localhost is correct here - we're serving the dist folder locally to Puppeteer
+        // This is the standard approach for prerendering. The final deployed site uses https://voltvoyages.io
         const url = `http://localhost:${port}${route}`;
-        console.log(`   Navigating to: ${url}`);
+        console.log(`   Navigating to: ${url} (localhost is correct for prerendering)`);
 
-        // Set a longer timeout and wait for both DOM and network
-        await page.goto(url, {
-          waitUntil: ["domcontentloaded", "networkidle0"],
-          timeout: 60000,
-        });
+        try {
+          // Set a longer timeout and wait for both DOM and network
+          await page.goto(url, {
+            waitUntil: ["domcontentloaded", "networkidle0"],
+            timeout: 60000,
+          });
+        } catch (error) {
+          console.log(`   Navigation error: ${error.message}`);
+          // Try to continue anyway
+        }
 
         // Wait for all scripts to load and execute
         await page.evaluate(() => {
@@ -299,7 +326,7 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
               }
 
               // Check if window is ready and scripts are loaded
-              if (document.readyState === "complete" && window.React) {
+              if (document.readyState === "complete" && (window.React || window.__REACT_DEVTOOLS_GLOBAL_HOOK__)) {
                 // React is loaded but not rendered yet, wait more
                 if (attempts < maxAttempts) {
                   setTimeout(checkReact, 100);

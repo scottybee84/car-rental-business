@@ -6,6 +6,10 @@ import { join } from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
+  build: {
+    target: 'es2015', // Ensure compatibility with older browsers/Puppeteer
+    minify: 'esbuild',
+  },
   plugins: [
     react(),
     {
