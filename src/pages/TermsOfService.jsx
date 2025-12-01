@@ -1,10 +1,18 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import SEO from "../components/SEO";
 import "./LegalPages.css";
 
 const TermsOfService = () => {
   return (
     <div className="page-wrapper">
+      <SEO
+        title="Terms of Service | VoltVoyage Tesla Rental"
+        description="Terms of service for renting a Tesla Model Y in Germany with VoltVoyage. Rental requirements, policies, and terms for U.S. travelers."
+        url="/terms-of-service"
+        canonical="https://voltvoyages.com/terms-of-service"
+        noindex={false}
+      />
       <Navbar />
       <div className="legal-page">
         <div className="content-wrapper">

@@ -1,10 +1,18 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import SEO from "../components/SEO";
 import "./LegalPages.css";
 
 const PrivacyPolicy = () => {
   return (
     <div className="page-wrapper">
+      <SEO
+        title="Privacy Policy | VoltVoyage Tesla Rental"
+        description="VoltVoyage privacy policy and data protection information. Learn how we handle your personal data when you rent a Tesla in Germany."
+        url="/privacy-policy"
+        canonical="https://voltvoyages.com/privacy-policy"
+        noindex={false}
+      />
       <Navbar />
       <div className="legal-page">
         <div className="content-wrapper">

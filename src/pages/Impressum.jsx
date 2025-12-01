@@ -1,10 +1,18 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import SEO from "../components/SEO";
 import "./LegalPages.css";
 
 const Impressum = () => {
   return (
     <div className="page-wrapper">
+      <SEO
+        title="Impressum | VoltVoyage Tesla Rental"
+        description="Legal information and company details for VoltVoyage Tesla rental service in Germany."
+        url="/impressum"
+        canonical="https://voltvoyages.com/impressum"
+        noindex={false}
+      />
       <Navbar />
       <div className="legal-page">
         <div className="content-wrapper">

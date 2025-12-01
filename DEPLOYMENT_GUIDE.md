@@ -76,7 +76,7 @@ Your site will be live at: `https://YOUR_USERNAME.github.io/voltvoyage/`
 1. **In GitHub Pages Settings**:
 
    - Scroll to "Custom domain"
-   - Enter your domain (e.g., `voltvoyage.com`)
+   - Enter your domain (e.g., `voltvoyages.com`)
    - Check "Enforce HTTPS"
 
 2. **In Hostinger Dashboard**:
@@ -179,7 +179,7 @@ Your site will be live at: `https://YOUR_USERNAME.github.io/voltvoyage/`
 1. **In Vercel Dashboard**:
 
    - Go to your project → Settings → Domains
-   - Add your domain (e.g., `voltvoyage.com`)
+   - Add your domain (e.g., `voltvoyages.com`)
 
 2. **In Hostinger Dashboard**:
 

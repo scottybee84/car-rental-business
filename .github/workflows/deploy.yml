@@ -38,6 +38,17 @@ jobs:
           VITE_EMAILJS_PUBLIC_KEY: ${{ secrets.VITE_EMAILJS_PUBLIC_KEY }}
           VITE_EMAILJS_TEMPLATE_ID: ${{ secrets.VITE_EMAILJS_TEMPLATE_ID }}
           VITE_EMAILJS_CUSTOMER_TEMPLATE_ID: ${{ secrets.VITE_EMAILJS_CUSTOMER_TEMPLATE_ID }}
+          SITE_URL: ${{ secrets.SITE_URL || 'https://voltvoyage.com' }}
+
+      - name: Copy blog posts data to dist
+        run: |
+          mkdir -p dist/src/data
+          cp src/data/blogPosts.json dist/src/data/blogPosts.json 2>/dev/null || echo '[]' > dist/src/data/blogPosts.json
+
+      - name: Copy sitemap and robots.txt to dist
+        run: |
+          cp public/sitemap.xml dist/sitemap.xml 2>/dev/null || echo 'Sitemap not found, will be generated'
+          cp public/robots.txt dist/robots.txt
 
       - name: Copy index.html to 404.html for GitHub Pages routing
         run: cp dist/index.html dist/404.html
