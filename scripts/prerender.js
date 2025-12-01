@@ -256,8 +256,22 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
           await new Promise((resolve) => setTimeout(resolve, 2000));
         }
 
-        // Get the fully rendered HTML
-        const html = await page.content();
+        // Get the base HTML and the rendered content separately
+        const baseHTML = await page.content();
+        const renderedContent = await page.evaluate(() => {
+          const root = document.getElementById("root");
+          return root ? root.innerHTML : "";
+        });
+
+        // Inject the rendered content into the HTML
+        let html = baseHTML;
+        if (renderedContent.trim()) {
+          // Replace the empty root div with the rendered content
+          html = html.replace(
+            /<div id="root"><\/div>/,
+            `<div id="root">${renderedContent}</div>`
+          );
+        }
 
         // Update meta tags if route has specific meta
         const finalHTML = updateMetaTags(html, route);
@@ -348,14 +362,17 @@ async function prerenderRoutes() {
     }
   }
 
-  // Prerender blog posts
+  // Prerender blog posts (skip already prerendered ones)
   const blogPostsPath = join(__dirname, "../src/data/blogPosts.json");
   if (existsSync(blogPostsPath)) {
     try {
       const blogPosts = JSON.parse(readFileSync(blogPostsPath, "utf-8"));
 
       if (Array.isArray(blogPosts) && blogPosts.length > 0) {
-        console.log(`\n📝 Prerendering ${blogPosts.length} blog posts...`);
+        console.log(`\n📝 Checking ${blogPosts.length} blog posts...`);
+
+        let newPosts = 0;
+        let skippedPosts = 0;
 
         for (const post of blogPosts) {
           if (post.slug) {
@@ -366,6 +383,20 @@ async function prerenderRoutes() {
               post.slug,
               "index.html"
             );
+
+            // Check if already prerendered (file exists and has content)
+            if (existsSync(outputPath)) {
+              const existingContent = readFileSync(outputPath, "utf-8");
+              // Check if it has actual blog content (not just empty root div)
+              if (
+                existingContent.includes("blog-content") ||
+                existingContent.includes("blog-post")
+              ) {
+                skippedPosts++;
+                console.log(`⏭️  Skipping (already prerendered): ${route}`);
+                continue;
+              }
+            }
 
             mkdirSync(dirname(outputPath), { recursive: true });
 
@@ -378,10 +409,17 @@ async function prerenderRoutes() {
               );
               writeFileSync(outputPath, routeHTML, "utf-8");
               console.log(`✅ Prerendered: ${route}`);
+              newPosts++;
             } catch (error) {
               console.error(`❌ Error prerendering ${route}:`, error.message);
             }
           }
+        }
+
+        if (skippedPosts > 0) {
+          console.log(
+            `\n📊 Summary: ${newPosts} new posts prerendered, ${skippedPosts} skipped (already prerendered)`
+          );
         }
       }
     } catch (error) {
