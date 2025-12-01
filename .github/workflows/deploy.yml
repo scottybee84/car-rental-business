@@ -44,6 +44,15 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Restore prerendered cache
+        uses: actions/cache@v4
+        id: prerender-cache
+        with:
+          path: prerendered
+          key: prerendered-${{ runner.os }}-${{ hashFiles('src/data/blogPosts.json') }}
+          restore-keys: |
+            prerendered-${{ runner.os }}-
+
       - name: Show blog posts before build
         run: |
           if [ -f src/data/blogPosts.json ]; then
@@ -96,6 +105,15 @@ jobs:
 
       - name: Copy index.html to 404.html for GitHub Pages routing
         run: cp dist/index.html dist/404.html
+
+      - name: Save prerendered cache
+        uses: actions/cache@v4
+        if: always()
+        with:
+          path: prerendered
+          key: prerendered-${{ runner.os }}-${{ hashFiles('src/data/blogPosts.json') }}
+          restore-keys: |
+            prerendered-${{ runner.os }}-
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
