@@ -249,9 +249,11 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
           await page
             .waitForSelector(".blog-content", { timeout: 5000 })
             .catch(() => {});
-          await page.waitForTimeout(2000); // Extra wait for content
+          // Wait for content to load (replacement for deprecated waitForTimeout)
+          await new Promise((resolve) => setTimeout(resolve, 2000));
         } else if (route === "/blog") {
-          await page.waitForTimeout(2000); // Wait for blog list to load
+          // Wait for blog list to load
+          await new Promise((resolve) => setTimeout(resolve, 2000));
         }
 
         // Get the fully rendered HTML
