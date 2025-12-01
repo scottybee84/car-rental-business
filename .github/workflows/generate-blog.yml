@@ -65,11 +65,15 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Auto-generate blog post [skip ci]"
+            # Commit without [skip ci] so deploy workflow runs automatically
+            git commit -m "Auto-generate blog post"
             git push
-            echo "✅ Changes pushed. Blog post will be available at:"
+            echo "✅ Changes pushed to main branch"
+            echo "🚀 Deploy workflow will automatically trigger on push"
+            echo "📝 Blog post will be available at:"
             if [ -f src/data/blogPosts.json ]; then
               cat src/data/blogPosts.json | jq -r '.[0] | "https://voltvoyages.io/blog-posts/\(.slug)"' || echo "Could not determine URL"
             fi
             echo "📄 Sitemap updated at: https://voltvoyages.io/sitemap.xml"
+            echo "⏳ Deployment typically takes 1-2 minutes after push"
           fi
