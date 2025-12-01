@@ -269,6 +269,29 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
           }
         });
 
+        // Suppress expected network errors (analytics, tracking, etc.)
+        page.on("requestfailed", (request) => {
+          const url = request.url();
+          // Silently ignore expected failures (analytics, tracking, etc.)
+          if (
+            url.includes("google-analytics.com") ||
+            url.includes("googletagmanager.com") ||
+            url.includes("google.com/ccm/collect") ||
+            url.includes("doubleclick.net") ||
+            url.includes("googleadservices.com") ||
+            url.includes("fonts.googleapis.com") ||
+            url.includes("fonts.gstatic.com")
+          ) {
+            // Silently ignore - these are expected to fail in headless browser
+            return;
+          }
+          // Only log unexpected failures
+          const failure = request.failure();
+          if (failure && failure.errorText !== "net::ERR_ABORTED") {
+            console.log(`   Failed request: ${url} - ${failure.errorText}`);
+          }
+        });
+
         // Enable console logging to see React errors (but not analytics errors)
         page.on("console", (msg) => {
           const type = msg.type();
@@ -277,7 +300,10 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
           if (
             (type === "error" || type === "warning") &&
             !text.includes("google-analytics") &&
-            !text.includes("gtag")
+            !text.includes("gtag") &&
+            !text.includes("Failed to load resource") &&
+            !text.includes("net::ERR_FAILED") &&
+            !text.includes("net::ERR_ABORTED")
           ) {
             console.log(`   Browser ${type}: ${text}`);
           }
@@ -287,7 +313,8 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
           // Only log non-analytics errors
           if (
             !error.message.includes("google-analytics") &&
-            !error.message.includes("gtag")
+            !error.message.includes("gtag") &&
+            !error.message.includes("Failed to load resource")
           ) {
             console.log(`   Page error: ${error.message}`);
             if (error.stack) {
