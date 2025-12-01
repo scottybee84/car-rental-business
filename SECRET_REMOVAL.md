@@ -7,7 +7,7 @@ Your API key was committed to git history in commit `b3b1ec0`. You need to:
 ## Step 1: Revoke the Exposed API Key (DO THIS FIRST!)
 
 1. Go to https://platform.openai.com/api-keys
-2. Find the key starting with `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`
+2. Find and delete the exposed API key (it was in commit b3b1ec0)
 3. **Delete/Revoke it immediately**
 4. Create a new API key
 5. Add the new key to GitHub Secrets (Settings → Secrets → Actions → OPENAI_API_KEY)
