@@ -3,6 +3,7 @@
 ## ✅ What's Been Set Up
 
 1. **Blog Generation Script** (`scripts/generate-blog-post.js`)
+
    - Generates human-like, SEO-optimized blog posts
    - Includes internal linking to main page and deep links
    - Uses OpenAI GPT-4o-mini for cost efficiency
@@ -23,14 +24,14 @@
 2. Click **Settings** → **Secrets and variables** → **Actions**
 3. Click **New repository secret**
 4. Name: `OPENAI_API_KEY`
-5. Value: `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`
-6. Click **Add secret**
+
+5. Click **Add secret**
 
 ## 🧪 Step 2: Test the Script Locally (Optional)
 
 ```bash
 # Set your API key as environment variable
-export OPENAI_API_KEY="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"
+export
 
 # Run the script
 node scripts/generate-blog-post.js
@@ -39,17 +40,20 @@ node scripts/generate-blog-post.js
 ## 🚀 Step 3: Trigger First Blog Post
 
 ### Option A: Manual Trigger (Recommended for first test)
+
 1. Go to **Actions** tab in GitHub
 2. Select **Generate Daily Blog Post** workflow
 3. Click **Run workflow** → **Run workflow**
 
 ### Option B: Wait for Scheduled Run
+
 - First automatic run: Tomorrow at 2 AM UTC
 - Or adjust the cron schedule in `.github/workflows/generate-blog.yml`
 
 ## 📝 What Each Blog Post Includes
 
 ### Content Features:
+
 - ✅ **Human-like writing**: Conversational tone, natural flow, personal anecdotes
 - ✅ **SEO optimized**: 1100-1500 words, proper keyword usage
 - ✅ **Internal linking**: 3-4 links to main page (`https://voltvoyages.io`)
@@ -58,6 +62,7 @@ node scripts/generate-blog-post.js
 - ✅ **Rich content**: Examples, tips, real-world scenarios
 
 ### Blog Post Structure:
+
 ```json
 {
   "title": "SEO-optimized title (60-70 chars)",
@@ -78,6 +83,7 @@ node scripts/generate-blog-post.js
 ```
 
 ### Author System:
+
 - ✅ **Random author assignment** - Each post gets a unique author from a pool of 60+ names
 - ✅ **Consistent per time slot** - Same author for same time/day combination
 - ✅ **Diverse names** - Mix of genders, ethnicities, and backgrounds
@@ -87,6 +93,7 @@ node scripts/generate-blog-post.js
 ## 🔗 Internal Linking Strategy
 
 ### Main Page Links (3-4 per post):
+
 - "book your Tesla rental in Germany"
 - "rent a Tesla Model Y"
 - "check availability for your dates"
@@ -94,6 +101,7 @@ node scripts/generate-blog-post.js
 - "get started with your rental"
 
 ### Deep Links (2-3 per post):
+
 - Privacy policy (when discussing data/booking)
 - Terms of service (when discussing requirements)
 - Other relevant pages contextually
@@ -101,30 +109,37 @@ node scripts/generate-blog-post.js
 ## ⚙️ Customization
 
 ### Change Schedule:
+
 Edit `.github/workflows/generate-blog.yml`:
+
 ```yaml
 schedule:
-  - cron: '0 2 * * *'  # First run (UTC)
-  - cron: '0 14 * * *'  # Second run (UTC)
+  - cron: "0 2 * * *" # First run (UTC)
+  - cron: "0 14 * * *" # Second run (UTC)
 ```
 
 **Current Schedule:** Twice daily (2 AM and 2 PM UTC)
 
 ### Add More Topics:
+
 Edit `blogTopics` array in `scripts/generate-blog-post.js`
 
 ### Adjust Content Length:
+
 Edit the prompt in `scripts/generate-blog-post.js`:
+
 - Change "1100-1500 words" to your preferred range
 
 ## 📊 Monitoring
 
 ### Check Blog Posts:
+
 - View `src/data/blogPosts.json` to see all generated posts
 - Posts are automatically added to the sitemap
 - Check GitHub Actions logs for any errors
 
 ### View Generated Posts:
+
 - Posts appear on your site at `/blog-posts/[slug]`
 - Homepage blog section shows latest posts
 
@@ -150,16 +165,19 @@ Edit the prompt in `scripts/generate-blog-post.js`:
 ## 🐛 Troubleshooting
 
 ### Blog post not generating:
+
 1. Check GitHub Actions logs
 2. Verify `OPENAI_API_KEY` secret is set correctly
 3. Check API key has sufficient credits
 
 ### Posts not appearing on site:
+
 1. Verify `src/data/blogPosts.json` was updated
 2. Check that build process includes blog data
 3. Verify blog component is loading JSON correctly
 
 ### Links not working:
+
 1. Check that links use correct domain (`https://voltvoyages.io`)
 2. Verify deep links use correct paths
 3. Test links after deployment
@@ -173,4 +191,3 @@ Edit the prompt in `scripts/generate-blog-post.js`:
 5. ✅ Monitor for a few days to ensure automation works
 
 Your blog will now generate fresh, SEO-optimized content daily! 🚀
-
