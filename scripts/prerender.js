@@ -498,13 +498,38 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
 
         if (renderedContent && renderedContent.trim()) {
           // Find the root div tag and replace its content
+          // Use a more robust method to find the matching closing tag
           const rootDivStart = html.indexOf('<div id="root"');
           if (rootDivStart !== -1) {
-            // Find where the root div starts
+            // Find where the root div opening tag ends
             const rootDivTagEnd = html.indexOf(">", rootDivStart);
             if (rootDivTagEnd !== -1) {
-              // Find where the root div closes (first </div> after the opening tag)
-              const rootDivEnd = html.indexOf("</div>", rootDivTagEnd);
+              // Find the matching closing tag by counting nested divs
+              let depth = 1;
+              let pos = rootDivTagEnd + 1;
+              let rootDivEnd = -1;
+
+              while (pos < html.length && depth > 0) {
+                const nextOpen = html.indexOf("<div", pos);
+                const nextClose = html.indexOf("</div>", pos);
+
+                if (nextClose === -1) break;
+
+                if (nextOpen !== -1 && nextOpen < nextClose) {
+                  // Found an opening div before the closing tag
+                  depth++;
+                  pos = nextOpen + 4;
+                } else {
+                  // Found a closing tag
+                  depth--;
+                  if (depth === 0) {
+                    rootDivEnd = nextClose;
+                    break;
+                  }
+                  pos = nextClose + 6;
+                }
+              }
+
               if (rootDivEnd !== -1) {
                 // Replace everything between the opening and closing tags
                 const beforeRoot = html.substring(0, rootDivTagEnd + 1);
@@ -526,7 +551,7 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
                 }
               } else {
                 console.warn(
-                  `⚠️  Could not find closing tag for root div in route: ${route}`
+                  `⚠️  Could not find matching closing tag for root div in route: ${route}`
                 );
               }
             } else {
@@ -584,53 +609,16 @@ async function prerenderRoutes() {
     puppeteer = await loadPuppeteer();
   } catch (error) {
     console.error("❌ Could not load Puppeteer:", error.message);
+    console.log("⚠️  Puppeteer is required for blog post prerendering.");
     console.log(
-      "⚠️  Falling back to meta tag updates only (no content rendering)"
+      "   Blog posts will not be prerendered. Other pages remain as React SPA."
     );
-    // Fallback to meta tag updates only
-    const baseHTML = readFileSync(indexPath, "utf-8");
-    Object.keys(routeMetaTags).forEach((route) => {
-      const outputPath =
-        route === "/" ? indexPath : join(distPath, route, "index.html");
-      if (route !== "/") {
-        mkdirSync(dirname(outputPath), { recursive: true });
-      }
-      const routeHTML = updateMetaTags(baseHTML, route);
-      writeFileSync(outputPath, routeHTML, "utf-8");
-    });
     return;
   }
 
-  console.log("📄 Prerendering routes with full React content...");
-
-  // Prerender static routes (always prerender - they may have changed)
-  for (const route of Object.keys(routeMetaTags)) {
-    const outputPath =
-      route === "/" ? indexPath : join(distPath, route, "index.html");
-
-    // Create directory if it doesn't exist
-    if (route !== "/") {
-      mkdirSync(dirname(outputPath), { recursive: true });
-    }
-
-    try {
-      console.log(`🔄 Rendering: ${route}...`);
-      const routeHTML = await prerenderWithPuppeteer(
-        route,
-        distPath,
-        puppeteer
-      );
-      writeFileSync(outputPath, routeHTML, "utf-8");
-      console.log(`✅ Prerendered: ${route}`);
-    } catch (error) {
-      console.error(`❌ Error prerendering ${route}:`, error.message);
-      // Fallback to meta tag update only
-      const baseHTML = readFileSync(indexPath, "utf-8");
-      const routeHTML = updateMetaTags(baseHTML, route);
-      writeFileSync(outputPath, routeHTML, "utf-8");
-      console.log(`⚠️  Fallback: ${route} (meta tags only)`);
-    }
-  }
+  console.log(
+    "📄 Prerendering blog posts only (other pages remain React SPA)..."
+  );
 
   // Prerender blog posts with caching
   // Strategy: Save prerendered HTML to a cache directory, reuse if post hasn't changed
@@ -747,26 +735,9 @@ async function prerenderRoutes() {
     }
   }
 
-  // Prerender blog listing page
-  const blogRoute = "/blog";
-  const blogOutputPath = join(distPath, "blog", "index.html");
-  mkdirSync(dirname(blogOutputPath), { recursive: true });
-
-  try {
-    console.log(`🔄 Rendering: ${blogRoute}...`);
-    const blogHTML = await prerenderWithPuppeteer(
-      blogRoute,
-      distPath,
-      puppeteer
-    );
-    writeFileSync(blogOutputPath, blogHTML, "utf-8");
-    console.log(`✅ Prerendered: ${blogRoute}`);
-  } catch (error) {
-    console.error(`❌ Error prerendering ${blogRoute}:`, error.message);
-  }
-
   console.log("\n✅ Prerendering complete!");
-  console.log("📝 All routes now have fully rendered HTML content for SEO.");
+  console.log("📝 Blog posts are now prerendered as pure HTML for SEO.");
+  console.log("📄 Other pages remain as React SPA pages.");
 }
 
 prerenderRoutes().catch((error) => {
