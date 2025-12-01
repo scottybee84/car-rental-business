@@ -53,6 +53,19 @@ jobs:
           restore-keys: |
             prerendered-${{ runner.os }}-
 
+      - name: Show cache status
+        run: |
+          if [ -d prerendered ]; then
+            echo "✅ Cache restored: prerendered directory exists"
+            if [ -f prerendered/cache-index.json ]; then
+              echo "📦 Cache index found: $(cat prerendered/cache-index.json | jq -r 'length // 0' 2>/dev/null || echo '0') entries"
+            else
+              echo "📦 No cache index found - will create new cache"
+            fi
+          else
+            echo "📦 No cache found - will create new cache"
+          fi
+
       - name: Show blog posts before build
         run: |
           if [ -f src/data/blogPosts.json ]; then
@@ -107,8 +120,9 @@ jobs:
         run: cp dist/index.html dist/404.html
 
       - name: Save prerendered cache
-        uses: actions/cache@v4
         if: always()
+        uses: actions/cache@v4
+        continue-on-error: true
         with:
           path: prerendered
           key: prerendered-${{ runner.os }}-${{ hashFiles('src/data/blogPosts.json') }}
