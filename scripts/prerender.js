@@ -656,12 +656,20 @@ async function prerenderRoutes() {
 
   // Load cache index (tracks which posts are cached and their metadata)
   let cacheIndex = {};
-  if (existsSync(cacheIndexPath)) {
+  const cacheIndexExists = existsSync(cacheIndexPath);
+  if (cacheIndexExists) {
     try {
       cacheIndex = JSON.parse(readFileSync(cacheIndexPath, "utf-8"));
+      const cacheEntryCount = Object.keys(cacheIndex).length;
+      console.log(`📦 Cache index loaded: ${cacheEntryCount} entries found`);
     } catch (e) {
+      console.log(
+        `⚠️  Cache index exists but couldn't be parsed: ${e.message}`
+      );
       cacheIndex = {};
     }
+  } else {
+    console.log(`📦 No cache index found - will create new cache`);
   }
 
   if (existsSync(blogPostsPath)) {
@@ -702,22 +710,37 @@ async function prerenderRoutes() {
             const cacheKey = post.slug;
             const cached = cacheIndex[cacheKey];
             const postHash = `${post.slug}-${post.publishedAt || post.title}`;
+            const cacheFileExists = existsSync(cacheFilePath);
 
-            if (
-              cached &&
-              cached.postHash === postHash &&
-              existsSync(cacheFilePath)
-            ) {
+            // Debug logging for cache decision
+            if (cached && cached.postHash === postHash && cacheFileExists) {
               // Post hasn't changed, use cached HTML
               const cachedHTML = readFileSync(cacheFilePath, "utf-8");
               writeFileSync(outputPath, cachedHTML, "utf-8");
               newCacheIndex[cacheKey] = cached; // Keep existing cache entry
               cachedPosts++;
-              console.log(`💾 Using cached: ${route}`);
+              console.log(
+                `💾 Using cached: ${route} (cache file exists, postHash matches)`
+              );
             } else {
+              // Log why cache isn't being used
+              let cacheReason = [];
+              if (!cached) {
+                cacheReason.push("no cache entry");
+              } else if (cached.postHash !== postHash) {
+                cacheReason.push(
+                  `postHash changed (was: ${cached.postHash}, now: ${postHash})`
+                );
+              }
+              if (!cacheFileExists) {
+                cacheReason.push("cache file missing");
+              }
+
               // Post is new or changed, prerender it
               try {
-                console.log(`🔄 Rendering blog post: ${route}...`);
+                console.log(
+                  `🔄 Rendering blog post: ${route}...${cacheReason.length > 0 ? ` (${cacheReason.join(", ")})` : ""}`
+                );
                 const routeHTML = await prerenderWithPuppeteer(
                   route,
                   distPath,
