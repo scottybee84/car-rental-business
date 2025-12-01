@@ -202,6 +202,7 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
     );
 
     // Handle route-based files (SPA fallback)
+    // For routes without extensions, serve index.html (React Router will handle routing)
     if (!extname(filePath) || !existsSync(filePath)) {
       filePath = join(distPath, "index.html");
     }
@@ -237,26 +238,141 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
 
         const page = await browser.newPage();
 
+        // Enable console logging to see React errors
+        page.on("console", (msg) => {
+          const type = msg.type();
+          const text = msg.text();
+          if (type === "error") {
+            console.log(`   Browser console error: ${text}`);
+          }
+        });
+
+        page.on("pageerror", (error) => {
+          console.log(`   Page error: ${error.message}`);
+        });
+
         // Navigate to the route
         const url = `http://localhost:${port}${route}`;
-        await page.goto(url, { waitUntil: "networkidle0", timeout: 30000 });
+        console.log(`   Navigating to: ${url}`);
 
-        // Wait for React to render
+        // Set a longer timeout and wait for both DOM and network
+        await page.goto(url, {
+          waitUntil: ["domcontentloaded", "networkidle0"],
+          timeout: 60000,
+        });
+
+        // Wait for all scripts to load and execute
+        await page.evaluate(() => {
+          return new Promise((resolve) => {
+            if (document.readyState === "complete") {
+              // Wait for React to mount
+              setTimeout(resolve, 2000);
+            } else {
+              window.addEventListener("load", () => {
+                setTimeout(resolve, 2000);
+              });
+            }
+          });
+        });
+
+        // Wait for React to render - check if scripts loaded
         await page.waitForSelector("#root", { timeout: 10000 });
+
+        // Wait for JavaScript to execute and React to mount
+        await page.evaluate(async () => {
+          return new Promise((resolve) => {
+            let attempts = 0;
+            const maxAttempts = 100; // 10 seconds total
+
+            const checkReact = () => {
+              attempts++;
+              const root = document.getElementById("root");
+
+              // Check if React has rendered content
+              if (
+                root &&
+                (root.children.length > 0 || root.innerHTML.trim().length > 0)
+              ) {
+                console.log("React content found!");
+                resolve();
+                return;
+              }
+
+              // Check if window is ready and scripts are loaded
+              if (document.readyState === "complete" && window.React) {
+                // React is loaded but not rendered yet, wait more
+                if (attempts < maxAttempts) {
+                  setTimeout(checkReact, 100);
+                } else {
+                  console.log("Timeout waiting for React content");
+                  resolve();
+                }
+              } else if (attempts < maxAttempts) {
+                setTimeout(checkReact, 100);
+              } else {
+                console.log("Max attempts reached, React may not have loaded");
+                resolve();
+              }
+            };
+
+            // Start checking
+            if (document.readyState === "complete") {
+              setTimeout(checkReact, 1000); // Wait 1 second for React to mount
+            } else {
+              window.addEventListener("load", () => {
+                setTimeout(checkReact, 1000);
+              });
+            }
+          });
+        });
+
+        // Check if root has content
+        const initialContent = await page.evaluate(() => {
+          const root = document.getElementById("root");
+          return {
+            length: root ? root.innerHTML.length : 0,
+            children: root ? root.children.length : 0,
+            text: root ? root.textContent.trim().length : 0,
+          };
+        });
+        console.log(`   Initial content check:`, initialContent);
 
         // Wait for blog content to load (if it's a blog post)
         if (route.includes("/blog-posts/")) {
-          await page
-            .waitForSelector(".blog-content", { timeout: 10000 })
-            .catch(() => {});
+          // Wait for blog content specifically
+          try {
+            await page.waitForSelector(".blog-content", { timeout: 15000 });
+            console.log(`   Found .blog-content selector`);
+          } catch (e) {
+            console.log(
+              `   .blog-content not found, waiting for any content...`
+            );
+          }
           // Wait for content to load
           await new Promise((resolve) => setTimeout(resolve, 3000));
         } else if (route === "/blog") {
           // Wait for blog list to load
           await new Promise((resolve) => setTimeout(resolve, 3000));
         } else {
-          // For other routes, wait for any content
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          // For other routes, wait for any content in root
+          // Check if content appears
+          let attempts = 0;
+          while (attempts < 10) {
+            const hasContent = await page.evaluate(() => {
+              const root = document.getElementById("root");
+              return (
+                root &&
+                (root.children.length > 0 || root.textContent.trim().length > 0)
+              );
+            });
+            if (hasContent) {
+              console.log(`   Content detected after ${attempts * 200}ms`);
+              break;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 200));
+            attempts++;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 1000));
         }
 
         // Wait a bit more to ensure all async content is loaded
@@ -269,6 +385,17 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
             console.error("Root element not found");
             return "";
           }
+
+          // Debug info
+          const debugInfo = {
+            childrenCount: root.children.length,
+            textLength: root.textContent ? root.textContent.trim().length : 0,
+            innerHTMLLength: root.innerHTML.length,
+            firstChildTag: root.firstElementChild
+              ? root.firstElementChild.tagName
+              : null,
+          };
+          console.log("Debug info:", JSON.stringify(debugInfo));
 
           // Get all the HTML content from root
           let content = root.innerHTML;
@@ -284,13 +411,26 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
               .map((child) => child.outerHTML)
               .join("");
             if (!content && hasText) {
-              // Fallback: at least get the text content
-              content = root.textContent;
+              // Fallback: at least get the text content wrapped in a div
+              content = `<div>${root.textContent}</div>`;
+            }
+          }
+
+          // If still empty, check if React has mounted
+          if (!content.trim()) {
+            // Check for React root
+            const reactRoot = root._reactRootContainer || root.__reactContainer;
+            if (reactRoot) {
+              console.log("React root found but no content");
             }
           }
 
           return content || "";
         });
+
+        console.log(
+          `   Captured content length: ${renderedContent ? renderedContent.length : 0}`
+        );
 
         // Get the base HTML
         const baseHTML = await page.content();
