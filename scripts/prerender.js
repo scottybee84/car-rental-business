@@ -240,14 +240,14 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
             "--disable-gpu",
             "--no-first-run",
             "--no-zygote",
-            "--single-process"
+            "--single-process",
           ],
           // Use a more compatible browser
           executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
         });
 
         const page = await browser.newPage();
-        
+
         // Set viewport for consistent rendering
         await page.setViewport({ width: 1280, height: 720 });
 
@@ -265,17 +265,21 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
           console.log(`   Page error: ${error.message}`);
           console.log(`   Stack: ${error.stack}`);
         });
-        
+
         // Log failed requests
         page.on("requestfailed", (request) => {
-          console.log(`   Failed request: ${request.url()} - ${request.failure().errorText}`);
+          console.log(
+            `   Failed request: ${request.url()} - ${request.failure().errorText}`
+          );
         });
 
         // Navigate to the route
         // Note: localhost is correct here - we're serving the dist folder locally to Puppeteer
         // This is the standard approach for prerendering. The final deployed site uses https://voltvoyages.io
         const url = `http://localhost:${port}${route}`;
-        console.log(`   Navigating to: ${url} (localhost is correct for prerendering)`);
+        console.log(
+          `   Navigating to: ${url} (localhost is correct for prerendering)`
+        );
 
         try {
           // Set a longer timeout and wait for both DOM and network
@@ -326,7 +330,10 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
               }
 
               // Check if window is ready and scripts are loaded
-              if (document.readyState === "complete" && (window.React || window.__REACT_DEVTOOLS_GLOBAL_HOOK__)) {
+              if (
+                document.readyState === "complete" &&
+                (window.React || window.__REACT_DEVTOOLS_GLOBAL_HOOK__)
+              ) {
                 // React is loaded but not rendered yet, wait more
                 if (attempts < maxAttempts) {
                   setTimeout(checkReact, 100);
