@@ -251,26 +251,49 @@ async function prerenderWithPuppeteer(route, distPath, puppeteer, port = 4173) {
         // Set viewport for consistent rendering
         await page.setViewport({ width: 1280, height: 720 });
 
-        // Enable console logging to see React errors
+        // Block analytics and tracking requests to speed up prerendering
+        await page.setRequestInterception(true);
+        page.on("request", (request) => {
+          const url = request.url();
+          // Block Google Analytics, Google Ads, and other tracking
+          if (
+            url.includes("google-analytics.com") ||
+            url.includes("googletagmanager.com") ||
+            url.includes("google.com/ccm/collect") ||
+            url.includes("doubleclick.net") ||
+            url.includes("googleadservices.com")
+          ) {
+            request.abort();
+          } else {
+            request.continue();
+          }
+        });
+
+        // Enable console logging to see React errors (but not analytics errors)
         page.on("console", (msg) => {
           const type = msg.type();
           const text = msg.text();
-          // Log all console messages for debugging
-          if (type === "error" || type === "warning") {
+          // Only log actual errors/warnings, not analytics failures
+          if (
+            (type === "error" || type === "warning") &&
+            !text.includes("google-analytics") &&
+            !text.includes("gtag")
+          ) {
             console.log(`   Browser ${type}: ${text}`);
           }
         });
 
         page.on("pageerror", (error) => {
-          console.log(`   Page error: ${error.message}`);
-          console.log(`   Stack: ${error.stack}`);
-        });
-
-        // Log failed requests
-        page.on("requestfailed", (request) => {
-          console.log(
-            `   Failed request: ${request.url()} - ${request.failure().errorText}`
-          );
+          // Only log non-analytics errors
+          if (
+            !error.message.includes("google-analytics") &&
+            !error.message.includes("gtag")
+          ) {
+            console.log(`   Page error: ${error.message}`);
+            if (error.stack) {
+              console.log(`   Stack: ${error.stack}`);
+            }
+          }
         });
 
         // Navigate to the route
