@@ -406,7 +406,7 @@ async function prerenderRoutes() {
 
   console.log("📄 Prerendering routes with full React content...");
 
-  // Prerender static routes
+  // Prerender static routes (always prerender - they may have changed)
   for (const route of Object.keys(routeMetaTags)) {
     const outputPath =
       route === "/" ? indexPath : join(distPath, route, "index.html");
@@ -435,21 +435,47 @@ async function prerenderRoutes() {
     }
   }
 
-  // Prerender blog posts (skip already prerendered ones)
+  // Prerender blog posts with caching
+  // Strategy: Save prerendered HTML to a cache directory, reuse if post hasn't changed
+  // This ensures consistent HTML for SEO and speeds up builds
   const blogPostsPath = join(__dirname, "../src/data/blogPosts.json");
+  const cacheDir = join(__dirname, "../prerendered");
+  const cacheIndexPath = join(cacheDir, "cache-index.json");
+
+  // Load cache index (tracks which posts are cached and their metadata)
+  let cacheIndex = {};
+  if (existsSync(cacheIndexPath)) {
+    try {
+      cacheIndex = JSON.parse(readFileSync(cacheIndexPath, "utf-8"));
+    } catch (e) {
+      cacheIndex = {};
+    }
+  }
+
   if (existsSync(blogPostsPath)) {
     try {
       const blogPosts = JSON.parse(readFileSync(blogPostsPath, "utf-8"));
 
       if (Array.isArray(blogPosts) && blogPosts.length > 0) {
-        console.log(`\n📝 Checking ${blogPosts.length} blog posts...`);
+        console.log(`\n📝 Processing ${blogPosts.length} blog posts...`);
 
-        let newPosts = 0;
-        let skippedPosts = 0;
+        let prerenderedPosts = 0;
+        let cachedPosts = 0;
+        let failedPosts = 0;
+        const newCacheIndex = {};
+
+        // Ensure cache directory exists
+        mkdirSync(cacheDir, { recursive: true });
+        mkdirSync(join(cacheDir, "blog-posts"), { recursive: true });
 
         for (const post of blogPosts) {
           if (post.slug) {
             const route = `/blog-posts/${post.slug}`;
+            const cacheFilePath = join(
+              cacheDir,
+              "blog-posts",
+              `${post.slug}.html`
+            );
             const outputPath = join(
               distPath,
               "blog-posts",
@@ -457,43 +483,67 @@ async function prerenderRoutes() {
               "index.html"
             );
 
-            // Check if already prerendered (file exists and has content)
-            if (existsSync(outputPath)) {
-              const existingContent = readFileSync(outputPath, "utf-8");
-              // Check if it has actual blog content (not just empty root div)
-              if (
-                existingContent.includes("blog-content") ||
-                existingContent.includes("blog-post")
-              ) {
-                skippedPosts++;
-                console.log(`⏭️  Skipping (already prerendered): ${route}`);
-                continue;
-              }
-            }
-
+            // Create output directory
             mkdirSync(dirname(outputPath), { recursive: true });
 
-            try {
-              console.log(`🔄 Rendering blog post: ${route}...`);
-              const routeHTML = await prerenderWithPuppeteer(
-                route,
-                distPath,
-                puppeteer
-              );
-              writeFileSync(outputPath, routeHTML, "utf-8");
-              console.log(`✅ Prerendered: ${route}`);
-              newPosts++;
-            } catch (error) {
-              console.error(`❌ Error prerendering ${route}:`, error.message);
+            // Check if we can use cached version
+            const cacheKey = post.slug;
+            const cached = cacheIndex[cacheKey];
+            const postHash = `${post.slug}-${post.publishedAt || post.title}`;
+
+            if (
+              cached &&
+              cached.postHash === postHash &&
+              existsSync(cacheFilePath)
+            ) {
+              // Post hasn't changed, use cached HTML
+              const cachedHTML = readFileSync(cacheFilePath, "utf-8");
+              writeFileSync(outputPath, cachedHTML, "utf-8");
+              newCacheIndex[cacheKey] = cached; // Keep existing cache entry
+              cachedPosts++;
+              console.log(`💾 Using cached: ${route}`);
+            } else {
+              // Post is new or changed, prerender it
+              try {
+                console.log(`🔄 Rendering blog post: ${route}...`);
+                const routeHTML = await prerenderWithPuppeteer(
+                  route,
+                  distPath,
+                  puppeteer
+                );
+
+                // Save to both dist and cache
+                writeFileSync(outputPath, routeHTML, "utf-8");
+                writeFileSync(cacheFilePath, routeHTML, "utf-8");
+
+                // Update cache index
+                newCacheIndex[cacheKey] = {
+                  slug: post.slug,
+                  postHash: postHash,
+                  publishedAt: post.publishedAt,
+                  cachedAt: new Date().toISOString(),
+                };
+
+                console.log(`✅ Prerendered and cached: ${route}`);
+                prerenderedPosts++;
+              } catch (error) {
+                console.error(`❌ Error prerendering ${route}:`, error.message);
+                failedPosts++;
+              }
             }
           }
         }
 
-        if (skippedPosts > 0) {
-          console.log(
-            `\n📊 Summary: ${newPosts} new posts prerendered, ${skippedPosts} skipped (already prerendered)`
-          );
-        }
+        // Save updated cache index
+        writeFileSync(
+          cacheIndexPath,
+          JSON.stringify(newCacheIndex, null, 2),
+          "utf-8"
+        );
+
+        console.log(
+          `\n📊 Blog posts: ${prerenderedPosts} prerendered, ${cachedPosts} from cache, ${failedPosts} failed`
+        );
       }
     } catch (error) {
       console.warn("⚠️  Could not prerender blog posts:", error.message);

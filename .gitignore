@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+.prerender-cache.json
+# Note: prerendered/ is NOT ignored - we commit it so cache persists between builds
 
 # Environment variables
 .env
