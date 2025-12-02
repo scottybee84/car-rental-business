@@ -79,7 +79,25 @@ const BlogPost = () => {
     "@type": "BlogPosting",
     headline: post.title,
     description: post.excerpt || post.description,
-    image: post.image,
+    image: {
+      "@type": "ImageObject",
+      url: post.image,
+      width: 1792,
+      height: 1024,
+      caption: post.title,
+      description: post.excerpt || post.title,
+      name: post.title,
+      keywords: post.keywords?.join(", "),
+      author: {
+        "@type": "Person",
+        name: post.author?.name || "VoltVoyage",
+      },
+      copyrightHolder: {
+        "@type": "Organization",
+        name: "VoltVoyage",
+      },
+      license: "https://voltvoyages.io/terms-of-service",
+    },
     datePublished: post.publishedAt,
     dateModified: post.publishedAt || post.dateModified,
     author: post.author
@@ -202,17 +220,42 @@ const BlogPost = () => {
             </header>
 
             {post.image && (
-              <img
-                src={post.image}
-                alt={post.title}
-                style={{
-                  width: "100%",
-                  height: "auto",
-                  borderRadius: "8px",
-                  marginBottom: "2rem",
-                }}
-                loading="eager"
-              />
+              <figure
+                itemScope
+                itemType="https://schema.org/ImageObject"
+                style={{ margin: "0 0 2rem 0" }}
+              >
+                <img
+                  src={post.image}
+                  alt={post.imageAlt || post.title}
+                  title={post.title}
+                  itemProp="contentUrl"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    borderRadius: "8px",
+                  }}
+                  loading="eager"
+                  fetchpriority="high"
+                />
+                <meta
+                  itemProp="description"
+                  content={post.imageDescription || post.excerpt || post.title}
+                />
+                <meta itemProp="name" content={post.title} />
+                <meta
+                  itemProp="author"
+                  content={post.author?.name || "VoltVoyage"}
+                />
+                <meta itemProp="datePublished" content={post.publishedAt} />
+                <meta itemProp="keywords" content={post.keywords?.join(", ")} />
+                <meta
+                  itemProp="license"
+                  content="https://voltvoyages.io/terms-of-service"
+                />
+                <meta itemProp="representativeOfPage" content="true" />
+                <meta itemProp="url" content={post.image} />
+              </figure>
             )}
 
             <div

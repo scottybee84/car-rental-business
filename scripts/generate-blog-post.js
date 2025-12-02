@@ -267,21 +267,31 @@ async function fetchRecentTeslaNews() {
 }
 
 // Generate AI image using OpenAI DALL-E based on article content
-async function generateAIImage(articleTitle, newsContext, apiKey) {
+async function generateAIImage(articleTitle, newsContext, keywords, apiKey) {
   try {
     const OpenAI = (await import("openai")).default;
     const openai = new OpenAI({ apiKey });
 
-    // Create a descriptive prompt for DALL-E based on the article
-    const imagePrompt = `Professional, high-quality photograph for a blog post about: "${articleTitle}". 
+    // Create a descriptive prompt for DALL-E based on the article and keywords
+    // Include keywords to ensure image relevance for SEO
+    const keywordContext =
+      keywords && keywords.length > 0
+        ? `Keywords: ${keywords.slice(0, 5).join(", ")}. `
+        : "";
+
+    const imagePrompt = `${keywordContext}Professional, high-quality photograph for a blog post about: "${articleTitle}". 
 Style: Modern, clean, automotive photography. 
 Scene: Tesla Model Y electric vehicle on a scenic German autobahn or in a beautiful German city setting. 
 Mood: Futuristic, sustainable, premium travel. 
 Include: Tesla vehicle, German landscape or cityscape, sense of movement and innovation.
+${newsContext ? `Context: ${newsContext.substring(0, 100)}` : ""}
 Quality: Professional photography, well-lit, cinematic composition.
 No text or logos in the image.`;
 
-    console.log(`🎨 Generating AI image for article...`);
+    console.log(`🎨 Generating AI image with SEO-optimized context...`);
+    console.log(
+      `   Keywords: ${keywords?.slice(0, 3).join(", ") || "general"}`
+    );
 
     const response = await openai.images.generate({
       model: "dall-e-3",
@@ -293,13 +303,27 @@ No text or logos in the image.`;
     });
 
     const imageUrl = response.data[0].url;
+    const revisedPrompt = response.data[0].revised_prompt;
     console.log(`✅ AI image generated successfully`);
-    return imageUrl;
+    console.log(
+      `   DALL-E revised prompt: ${revisedPrompt?.substring(0, 100)}...`
+    );
+
+    // Return both URL and metadata for SEO
+    return {
+      url: imageUrl,
+      altText: `${articleTitle} - Tesla Model Y rental in Germany`,
+      description: revisedPrompt || imagePrompt,
+    };
   } catch (error) {
     console.log(`⚠️  Could not generate AI image: ${error.message}`);
     console.log(`   Falling back to placeholder image`);
     // Fallback to a working placeholder
-    return "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=1200&h=630&fit=crop&q=80";
+    return {
+      url: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=1200&h=630&fit=crop&q=80",
+      altText: `${articleTitle} - Tesla rental in Germany`,
+      description: "Tesla Model Y electric vehicle in Germany",
+    };
   }
 }
 
@@ -429,10 +453,11 @@ async function generateBlogPost() {
       author
     );
 
-    // Generate AI image based on the article title and content
-    const aiImageUrl = await generateAIImage(
+    // Generate AI image based on the article title, content, and keywords
+    const aiImageData = await generateAIImage(
       blogContent.title,
       recentNews.length > 0 ? recentNews[0].title : "",
+      blogContent.keywords,
       AI_API_KEY
     );
 
@@ -444,7 +469,9 @@ async function generateBlogPost() {
       readTime: blogContent.readTime,
       content: blogContent.content,
       excerpt: blogContent.excerpt,
-      image: aiImageUrl, // Use AI-generated image
+      image: aiImageData.url, // Use AI-generated image URL
+      imageAlt: aiImageData.altText, // SEO-optimized alt text
+      imageDescription: aiImageData.description, // For structured data
       featured: false,
       publishedAt: today.toISOString(),
       keywords: blogContent.keywords || [],
