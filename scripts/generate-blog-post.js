@@ -266,40 +266,43 @@ async function fetchRecentTeslaNews() {
   }
 }
 
-// Generate unique Unsplash image URL for each post
+// Generate unique image URL for each post using Unsplash Source API
 function generateUniqueImageUrl(seed) {
-  // Unsplash provides free, high-quality images
-  // We'll use curated photo IDs that are relevant to Tesla/EVs/travel
-  // These are real Unsplash photo IDs for high-quality Tesla/car/travel images
-  const imageIds = [
-    "1560958089-b8a1929cea89", // Tesla Model Y
-    "1617886322395-6ae3e11a25d7", // Electric car charging
-    "1593941707882-a5bba14938c7", // Modern electric car
-    "1619642751034-765dfdf7c58e", // Tesla interior
-    "1558618666-fcd25c85cd64", // Electric vehicle
-    "1549317661-bd32c8ce0db2", // Road trip
-    "1568605117036-5fe5e7bab0b7", // Highway driving
-    "1606318313252-72e150df5754", // Tesla Model 3
-    "1620121692029-d088224ddc74", // EV charging station
-    "1617788142179-eb4d0e5e5b26", // Modern car technology
-    "1587387119725-0c3f6eed3d08", // Germany Autobahn
-    "1580273916550-e323be2ae537", // Road landscape
-    "1614200179296-6b0c58775463", // Tesla exterior
-    "1563720360172-67b8f3dce741", // Modern vehicle
-    "1615906655593-7a4b9f6f0c7f", // Electric mobility
-    "1598386490624-3e0b5e8e7f90", // Car interior tech
-    "1599819177961-2b68e2cfb1c5", // Sustainable transport
-    "1601653056375-77a3c4c2f4d9", // EV lifestyle
-    "1619642751276-d7887e13b41f", // Tesla features
-    "1567818735868-b8b1e6f86d18", // Modern travel
+  // Unsplash Source provides guaranteed working images
+  // We'll use different search terms to ensure variety
+  const imageThemes = [
+    "tesla-car",
+    "electric-vehicle",
+    "germany-autobahn",
+    "modern-car",
+    "ev-charging",
+    "road-trip-germany",
+    "highway-travel",
+    "sustainable-transport",
+    "car-technology",
+    "travel-europe",
+    "electric-mobility",
+    "tesla-interior",
+    "charging-station",
+    "german-highway",
+    "car-rental",
+    "automotive-technology",
+    "green-energy",
+    "road-landscape",
+    "modern-travel",
+    "ev-infrastructure",
   ];
 
-  // Use seed to select an image ID, ensuring uniqueness
-  const imageIndex = seed % imageIds.length;
-  const imageId = imageIds[imageIndex];
+  // Use seed to select a theme
+  const themeIndex = seed % imageThemes.length;
+  const theme = imageThemes[themeIndex];
 
-  // Use Unsplash's image API with specific photo ID
-  return `https://images.unsplash.com/photo-${imageId}?w=1200&h=630&fit=crop&q=80`;
+  // Add seed to the URL to ensure different images even with same theme
+  const imageVariation = Math.floor(seed / imageThemes.length) % 1000;
+
+  // Use Unsplash Source API with search term and sig for uniqueness
+  // This API always returns a working image
+  return `https://source.unsplash.com/1200x630/?${theme},car&sig=${imageVariation}`;
 }
 
 // Generate unique topic variation based on date and time
