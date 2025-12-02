@@ -327,6 +327,95 @@ No text or logos in the image.`;
   }
 }
 
+// Humanize AI content using Undetectable.AI to bypass AI detection
+async function humanizeContent(content, apiKey, userId) {
+  try {
+    console.log(`🤖 Humanizing content with Undetectable.AI...`);
+    console.log(`   Content length: ${content.length} characters`);
+
+    // Submit content for humanization
+    const submitResponse = await fetch("https://api.undetectable.ai/submit", {
+      method: "POST",
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        content: content,
+        readabilityLevel: "University",
+        purpose: "General Writing",
+        strength: "More Human", // Maximum humanization for heavily AI-detected content
+      }),
+    });
+
+    if (!submitResponse.ok) {
+      throw new Error(
+        `API returned ${submitResponse.status}: ${submitResponse.statusText}`
+      );
+    }
+
+    const submitData = await submitResponse.json();
+
+    if (!submitData.id) {
+      throw new Error("No document ID returned from API");
+    }
+
+    const documentId = submitData.id;
+    console.log(`   Document submitted: ${documentId}`);
+    console.log(`   Waiting for humanization to complete...`);
+
+    // Poll for completion (Undetectable.AI processes asynchronously)
+    let attempts = 0;
+    const maxAttempts = 60; // 60 seconds max wait (longer content takes more time)
+
+    while (attempts < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second between checks
+
+      const checkResponse = await fetch(
+        `https://api.undetectable.ai/document/${documentId}`,
+        {
+          headers: {
+            "api-key": apiKey,
+          },
+        }
+      );
+
+      if (!checkResponse.ok) {
+        throw new Error(`Status check failed: ${checkResponse.status}`);
+      }
+
+      const checkData = await checkResponse.json();
+
+      if (checkData.status === "done" && checkData.output) {
+        console.log(`✅ Content humanized successfully`);
+        console.log(
+          `   Original: ${content.length} chars → Humanized: ${checkData.output.length} chars`
+        );
+        return checkData.output;
+      }
+
+      if (checkData.status === "error") {
+        throw new Error(
+          `Humanization failed: ${checkData.message || "Unknown error"}`
+        );
+      }
+
+      // Still processing
+      if (attempts % 5 === 0 && attempts > 0) {
+        console.log(`   Still processing... (${attempts}s elapsed)`);
+      }
+
+      attempts++;
+    }
+
+    throw new Error("Humanization timeout after 60 seconds");
+  } catch (error) {
+    console.log(`⚠️  Humanization failed: ${error.message}`);
+    console.log(`   Returning original content (will be detected as AI)`);
+    return content; // Fallback to original if humanization fails
+  }
+}
+
 // Generate unique topic variation based on date and time
 function getUniqueTopic(date) {
   const dayOfYear = Math.floor(
@@ -452,6 +541,49 @@ async function generateBlogPost() {
       AI_API_KEY,
       author
     );
+
+    // Humanize content to bypass AI detection if API key is available
+    const UNDETECTABLE_AI_KEY = process.env.UNDETECTABLE_AI_KEY;
+    const UNDETECTABLE_USER_ID = "ffa7ea41-f16d-42f4-9b9c-fad525a78450";
+
+    if (UNDETECTABLE_AI_KEY) {
+      console.log(`\n🤖 Starting content humanization process...`);
+
+      // Humanize main content
+      blogContent.content = await humanizeContent(
+        blogContent.content,
+        UNDETECTABLE_AI_KEY,
+        UNDETECTABLE_USER_ID
+      );
+
+      // Humanize title
+      console.log(`🤖 Humanizing title...`);
+      blogContent.title = await humanizeContent(
+        blogContent.title,
+        UNDETECTABLE_AI_KEY,
+        UNDETECTABLE_USER_ID
+      );
+
+      // Humanize excerpt
+      console.log(`🤖 Humanizing excerpt...`);
+      blogContent.excerpt = await humanizeContent(
+        blogContent.excerpt,
+        UNDETECTABLE_AI_KEY,
+        UNDETECTABLE_USER_ID
+      );
+
+      console.log(`✅ All content humanized successfully\n`);
+    } else {
+      console.log(
+        `\n⚠️  UNDETECTABLE_AI_KEY not set - content will not be humanized`
+      );
+      console.log(
+        `   Add the key to GitHub Secrets to enable AI detection bypass`
+      );
+      console.log(
+        `   WARNING: Content may be detected as 100% AI without humanization\n`
+      );
+    }
 
     // Generate AI image based on the article title, content, and keywords
     const aiImageData = await generateAIImage(
