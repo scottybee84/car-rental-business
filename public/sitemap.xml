@@ -7,74 +7,26 @@
         xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
   <url>
     <loc>https://voltvoyages.io/</loc>
-    <lastmod>2025-12-02T13:02:33.800Z</lastmod>
+    <lastmod>2025-12-02T13:14:54.678Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/impressum</loc>
-    <lastmod>2025-12-02T13:02:33.800Z</lastmod>
+    <lastmod>2025-12-02T13:14:54.678Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/privacy-policy</loc>
-    <lastmod>2025-12-02T13:02:33.800Z</lastmod>
+    <lastmod>2025-12-02T13:14:54.678Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/terms-of-service</loc>
-    <lastmod>2025-12-02T13:02:33.800Z</lastmod>
+    <lastmod>2025-12-02T13:14:54.678Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://voltvoyages.io/blog-posts/tesla-electric-vehicle-boost-rental-germany-2025</loc>
-    <lastmod>2025-12-02T13:01:58.235Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://voltvoyages.io/blog-posts/tesla-supercharger-expansion-germany-rental-benefits</loc>
-    <lastmod>2025-12-02T12:38:37.089Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://voltvoyages.io/blog-posts/german-city-driving-tesla-tips-for-urban-areas</loc>
-    <lastmod>2025-12-02T02:31:25.821Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://voltvoyages.io/blog-posts/tesla-rental-mileage-limits-germany-1</loc>
-    <lastmod>2025-12-01T14:59:24.328Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://voltvoyages.io/blog-posts/tesla-rental-mileage-germany</loc>
-    <lastmod>2025-12-01T13:52:15.907Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://voltvoyages.io/blog-posts/tesla-rental-mileage-understanding-limits-germany</loc>
-    <lastmod>2025-12-01T13:39:06.388Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://voltvoyages.io/blog-posts/tesla-rental-mileage-germany-insider-secrets</loc>
-    <lastmod>2025-12-01T13:32:43.238Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://voltvoyages.io/blog-posts/tesla-rental-mileage-limits-germany</loc>
-    <lastmod>2025-12-01T13:17:06.111Z</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
   </url>
 </urlset>

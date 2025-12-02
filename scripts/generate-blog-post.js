@@ -266,43 +266,41 @@ async function fetchRecentTeslaNews() {
   }
 }
 
-// Generate unique image URL for each post using Unsplash Source API
-function generateUniqueImageUrl(seed) {
-  // Unsplash Source provides guaranteed working images
-  // We'll use different search terms to ensure variety
-  const imageThemes = [
-    "tesla-car",
-    "electric-vehicle",
-    "germany-autobahn",
-    "modern-car",
-    "ev-charging",
-    "road-trip-germany",
-    "highway-travel",
-    "sustainable-transport",
-    "car-technology",
-    "travel-europe",
-    "electric-mobility",
-    "tesla-interior",
-    "charging-station",
-    "german-highway",
-    "car-rental",
-    "automotive-technology",
-    "green-energy",
-    "road-landscape",
-    "modern-travel",
-    "ev-infrastructure",
-  ];
+// Generate AI image using OpenAI DALL-E based on article content
+async function generateAIImage(articleTitle, newsContext, apiKey) {
+  try {
+    const OpenAI = (await import("openai")).default;
+    const openai = new OpenAI({ apiKey });
 
-  // Use seed to select a theme
-  const themeIndex = seed % imageThemes.length;
-  const theme = imageThemes[themeIndex];
+    // Create a descriptive prompt for DALL-E based on the article
+    const imagePrompt = `Professional, high-quality photograph for a blog post about: "${articleTitle}". 
+Style: Modern, clean, automotive photography. 
+Scene: Tesla Model Y electric vehicle on a scenic German autobahn or in a beautiful German city setting. 
+Mood: Futuristic, sustainable, premium travel. 
+Include: Tesla vehicle, German landscape or cityscape, sense of movement and innovation.
+Quality: Professional photography, well-lit, cinematic composition.
+No text or logos in the image.`;
 
-  // Add seed to the URL to ensure different images even with same theme
-  const imageVariation = Math.floor(seed / imageThemes.length) % 1000;
+    console.log(`🎨 Generating AI image for article...`);
 
-  // Use Unsplash Source API with search term and sig for uniqueness
-  // This API always returns a working image
-  return `https://source.unsplash.com/1200x630/?${theme},car&sig=${imageVariation}`;
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: imagePrompt,
+      n: 1,
+      size: "1792x1024", // Wide landscape format perfect for blog headers
+      quality: "standard", // Standard is more cost-effective
+      style: "natural", // Natural photographic style
+    });
+
+    const imageUrl = response.data[0].url;
+    console.log(`✅ AI image generated successfully`);
+    return imageUrl;
+  } catch (error) {
+    console.log(`⚠️  Could not generate AI image: ${error.message}`);
+    console.log(`   Falling back to placeholder image`);
+    // Fallback to a working placeholder
+    return "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=1200&h=630&fit=crop&q=80";
+  }
 }
 
 // Generate unique topic variation based on date and time
@@ -431,14 +429,12 @@ async function generateBlogPost() {
       author
     );
 
-    // Generate unique image for this post
-    const dayOfYear = Math.floor(
-      (today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24
+    // Generate AI image based on the article title and content
+    const aiImageUrl = await generateAIImage(
+      blogContent.title,
+      recentNews.length > 0 ? recentNews[0].title : "",
+      AI_API_KEY
     );
-    const imageSeed = dayOfYear * 24 + today.getHours();
-    const uniqueImage = generateUniqueImageUrl(imageSeed);
-
-    console.log(`🖼️  Generated unique image URL (seed: ${imageSeed})`);
 
     // Create blog post object
     const blogPost = {
@@ -448,7 +444,7 @@ async function generateBlogPost() {
       readTime: blogContent.readTime,
       content: blogContent.content,
       excerpt: blogContent.excerpt,
-      image: uniqueImage, // Always use our generated unique image
+      image: aiImageUrl, // Use AI-generated image
       featured: false,
       publishedAt: today.toISOString(),
       keywords: blogContent.keywords || [],
