@@ -410,9 +410,68 @@ async function humanizeContent(content, apiKey, userId) {
 
     throw new Error("Humanization timeout after 60 seconds");
   } catch (error) {
-    console.log(`⚠️  Humanization failed: ${error.message}`);
-    console.log(`   Returning original content (will be detected as AI)`);
-    return content; // Fallback to original if humanization fails
+    console.log(`⚠️  Humanization API failed: ${error.message}`);
+    console.log(`   Falling back to GPT-based humanization...`);
+    return null; // Signal to use GPT fallback
+  }
+}
+
+// Fallback humanization using GPT when Undetectable.AI fails
+async function humanizeWithGPT(content, openaiApiKey, contentType = "content") {
+  try {
+    const OpenAI = (await import("openai")).default;
+    const openai = new OpenAI({ apiKey: openaiApiKey });
+
+    const prompt = contentType === "title" 
+      ? `Rewrite this title to sound more human and less AI-generated. Keep it SEO-friendly and under 70 characters. Make it conversational and unique:\n\n"${content}"\n\nReturn ONLY the rewritten title, nothing else.`
+      : contentType === "excerpt"
+      ? `Rewrite this excerpt to sound more human and less AI-generated. Keep it under 200 characters. Make it engaging and conversational:\n\n"${content}"\n\nReturn ONLY the rewritten excerpt, nothing else.`
+      : `Rewrite this blog post content to sound more human and less AI-generated. 
+
+CRITICAL REQUIREMENTS:
+1. Add minor imperfections (start sentences with And/But/So sometimes)
+2. Vary paragraph lengths dramatically (some 1 sentence, some 6-7)
+3. Use contractions heavily (we're, it's, you'll, don't, can't)
+4. Add filler words naturally (actually, basically, honestly, literally)
+5. Include personal interjections (I mean, you know, here's the thing)
+6. Use em dashes — like this
+7. Add parenthetical asides (they add personality)
+8. Make some sentences incomplete for emphasis. Like this.
+9. Remove AI phrases: "game changer", "revolutionizing", "it's a win-win", "cutting-edge"
+10. Keep all HTML tags and links EXACTLY as they are
+11. Keep the same structure but make writing flow more naturally
+12. Add specific numbers, dates, and examples where generic terms exist
+
+Original content:
+${content}
+
+Return ONLY the humanized HTML content, preserving all tags and links.`;
+
+    console.log(`   Using GPT fallback for ${contentType}...`);
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a content editor who makes AI text sound human-written. You preserve HTML, links, and SEO elements while making the writing natural."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 1.0, // Higher temperature for more variation
+      max_tokens: contentType === "title" ? 100 : contentType === "excerpt" ? 200 : 4000
+    });
+
+    const humanized = response.choices[0].message.content.trim();
+    console.log(`   ✅ GPT humanization complete`);
+    return humanized;
+  } catch (error) {
+    console.log(`   ⚠️  GPT fallback also failed: ${error.message}`);
+    console.log(`   Using original content (high AI detection risk)`);
+    return content;
   }
 }
 
