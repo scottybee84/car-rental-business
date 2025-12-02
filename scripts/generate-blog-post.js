@@ -435,6 +435,8 @@ async function generateBlogPost() {
     const imageSeed = dayOfYear * 24 + today.getHours();
     const uniqueImage = generateUniqueImageUrl(imageSeed);
 
+    console.log(`🖼️  Generated unique image URL (seed: ${imageSeed})`);
+
     // Create blog post object
     const blogPost = {
       title: blogContent.title,
@@ -443,7 +445,7 @@ async function generateBlogPost() {
       readTime: blogContent.readTime,
       content: blogContent.content,
       excerpt: blogContent.excerpt,
-      image: blogContent.image || uniqueImage,
+      image: uniqueImage, // Always use our generated unique image
       featured: false,
       publishedAt: today.toISOString(),
       keywords: blogContent.keywords || [],
@@ -585,13 +587,15 @@ HTML FORMATTING:
 - Use <strong> for emphasis, <em> for subtle emphasis
 - Include 1-2 bulleted lists where appropriate
 
-SEO OPTIMIZATION:
+SEO OPTIMIZATION & KEYWORDS:
 - Naturally include target keywords throughout (don't stuff)
 - Use keywords in at least 2-3 headings
 - Include location-specific terms (Germany, Frankfurt, Munich, Berlin, etc.)
 - Target long-tail keywords naturally
 - Include semantic variations of keywords
 - Make the title and content unique - avoid generic templates
+- **CRITICAL**: Include keywords from the news story/topic (e.g., if news is about "Supercharger expansion", include "Tesla Supercharger", "EV charging network", "charging infrastructure")
+- Blend news-specific terms with rental-focused keywords (e.g., "Tesla Model Y rental Germany", "EV road trip", "electric vehicle travel")
 
 POSITIVE SPIN EXAMPLES:
 - If news is about production challenges → Focus on quality improvements and attention to detail
@@ -608,9 +612,18 @@ BAD: "Tesla has announced new Supercharger locations in Bavaria, which will impr
 GOOD: "Look, I'll be honest - when I first read the headlines, I was skeptical. But dig deeper, and this is actually fantastic news for anyone thinking about renting a Tesla in Germany."
 BAD: "Recent developments in the electric vehicle sector indicate positive trends for the rental market."
 
-Return a JSON object with: title, slug (URL-friendly, lowercase, hyphens, MUST be unique - include specific details from the topic to ensure uniqueness, avoid generic slugs like "tesla-rental-guide"), category, readTime (e.g., "6 min read" or "8 min read"), content (HTML formatted with all links), excerpt, keywords (array of 8-12), image (optional URL)
+Return a JSON object with: title, slug (URL-friendly, lowercase, hyphens, MUST be unique - include specific details from the topic to ensure uniqueness, avoid generic slugs like "tesla-rental-guide"), category, readTime (e.g., "6 min read" or "8 min read"), content (HTML formatted with all links), excerpt, keywords (array of 8-12 - MUST include news-specific terms + rental terms)
 
-IMPORTANT: The slug must be unique and specific. Include location, specific topic details, or unique aspects to avoid collisions. For example, instead of "tesla-rental-guide", use "tesla-rental-mileage-limits-germany" or "tesla-charging-etiquette-frankfurt".`;
+CRITICAL REQUIREMENTS:
+1. The slug must be unique and specific. Include location, specific topic details, or unique aspects to avoid collisions. For example, instead of "tesla-rental-guide", use "tesla-supercharger-expansion-bavaria-rental-2024" or "tesla-model-y-updates-germany-travelers"
+2. Keywords MUST include a mix of:
+   - News-specific terms (from the article/topic)
+   - Tesla/EV rental keywords
+   - Location keywords (Germany, specific cities)
+   - Long-tail search terms travelers would use
+3. DO NOT include an "image" field - images are handled separately
+
+EXAMPLE KEYWORDS for a Supercharger news article: ["Tesla Supercharger expansion", "EV charging Germany", "Tesla Model Y rental", "electric vehicle road trip Germany", "Tesla charging infrastructure", "Bavaria EV travel", "Tesla rental Frankfurt", "Supercharger network Europe"]`;
 
   try {
     const completion = await openai.chat.completions.create({
