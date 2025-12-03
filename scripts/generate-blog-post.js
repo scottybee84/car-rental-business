@@ -820,9 +820,11 @@ async function postToTwitter(blogPost, blogUrl) {
 
           if (accessToken) {
             console.log(`\n   🔑 Using OAuth 2.0 Bearer token for v2 API`);
-            console.log(`      Bearer token: ${accessToken.substring(0, 30)}...`);
+            console.log(
+              `      Bearer token: ${accessToken.substring(0, 30)}...`
+            );
             console.log(`      Posting to: POST /2/tweets`);
-            
+
             response = await fetch("https://api.twitter.com/2/tweets", {
               method: "POST",
               headers: {
@@ -831,8 +833,10 @@ async function postToTwitter(blogPost, blogUrl) {
               },
               body: JSON.stringify(tweetData),
             });
-            
-            console.log(`      Response status: ${response.status} ${response.statusText}`);
+
+            console.log(
+              `      Response status: ${response.status} ${response.statusText}`
+            );
           } else {
             console.log(
               `   ⚠️  Failed to get OAuth 2.0 token, falling back to OAuth 1.0a`
@@ -927,7 +931,7 @@ async function getOAuth2AccessToken(clientId, clientSecret, refreshToken) {
   try {
     console.log(`\n   🔄 Exchanging refresh token for access token...`);
     console.log(`      Refresh token: ${refreshToken.substring(0, 20)}...`);
-    
+
     // Use refresh token to get a new access token for posting
     const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString(
       "base64"
@@ -948,13 +952,21 @@ async function getOAuth2AccessToken(clientId, clientSecret, refreshToken) {
 
     if (response.ok) {
       const data = await response.json();
-      console.log(`      ✅ Got access token: ${data.access_token.substring(0, 20)}...`);
+      console.log(
+        `      ✅ Got access token: ${data.access_token.substring(0, 20)}...`
+      );
       console.log(`      Token type: ${data.token_type}`);
-      console.log(`      Expires in: ${data.expires_in} seconds (${Math.floor(data.expires_in / 60)} minutes)`);
+      console.log(
+        `      Expires in: ${data.expires_in} seconds (${Math.floor(data.expires_in / 60)} minutes)`
+      );
       console.log(`      Scopes: ${data.scope}`);
       if (data.refresh_token) {
-        console.log(`      ✨ Got NEW refresh token: ${data.refresh_token.substring(0, 20)}...`);
-        console.log(`      💡 Note: Store this new refresh token to keep access refreshed!`);
+        console.log(
+          `      ✨ Got NEW refresh token: ${data.refresh_token.substring(0, 20)}...`
+        );
+        console.log(
+          `      💡 Note: Store this new refresh token to keep access refreshed!`
+        );
       }
       return data.access_token;
     } else {
