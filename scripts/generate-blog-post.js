@@ -744,7 +744,7 @@ async function postToTwitter(blogPost, blogUrl) {
       secret: twitterAccessSecret,
     };
 
-    console.log(`   🔑 Using Twitter API v2 with OAuth 1.0a user context...`);
+    console.log(`   🔑 Using Twitter API v1.1 (Free tier compatible)...`);
 
     // Upload image first (if available)
     let mediaId = null;
@@ -763,25 +763,21 @@ async function postToTwitter(blogPost, blogUrl) {
     for (let i = 0; i < tweets.length; i++) {
       const tweetText = tweets[i];
 
-      // Build request data for v2 API
-      const tweetData = {
-        text: tweetText,
-        ...(previousTweetId && {
-          reply: { in_reply_to_tweet_id: previousTweetId },
-        }),
-        ...(i === 0 && mediaId && { media: { media_ids: [mediaId] } }),
+      // Build request data for v1.1 API (works with Free tier)
+      const requestData = {
+        status: tweetText,
+        ...(previousTweetId && { in_reply_to_status_id: previousTweetId }),
+        ...(i === 0 && mediaId && { media_ids: mediaId }),
       };
 
-      // For v2 with JSON body, OAuth signature should NOT include body
-      // Only include URL and method in OAuth request
       const request = {
-        url: "https://api.twitter.com/2/tweets",
+        url: "https://api.twitter.com/1.1/statuses/update.json",
         method: "POST",
-        data: {}, // Empty data for OAuth signature (body not included)
+        data: requestData,
       };
 
       const authHeader = oauth.toHeader(oauth.authorize(request, token));
-
+      
       // Debug: Log request details (sanitized)
       if (i === 0) {
         console.log(`   🔍 Request details for Tweet 1:`);
@@ -791,23 +787,25 @@ async function postToTwitter(blogPost, blogUrl) {
         );
         console.log(`      Tweet text length: ${tweetText.length} chars`);
         console.log(`      Has media: ${!!mediaId}`);
-        console.log(
-          `      Request body: ${JSON.stringify(tweetData).substring(0, 100)}...`
-        );
       }
+
+      // Convert data to form-encoded string
+      const formBody = Object.keys(requestData)
+        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(requestData[key]))
+        .join('&');
 
       const response = await fetch(request.url, {
         method: "POST",
         headers: {
           ...authHeader,
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: JSON.stringify(tweetData),
+        body: formBody,
       });
 
       if (response.ok) {
         const data = await response.json();
-        previousTweetId = data.data.id; // v2 uses id (not id_str)
+        previousTweetId = data.id_str; // v1.1 uses id_str
         postedCount++;
 
         if (i === 0) {
