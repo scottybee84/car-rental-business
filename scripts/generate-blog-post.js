@@ -780,10 +780,12 @@ async function postToTwitter(blogPost, blogUrl) {
         ...(i === 0 && mediaId && { media: { media_ids: [mediaId] } }),
       };
 
+      // For v2 API with JSON body, don't include data in OAuth signature
+      // OAuth 1.0a only signs query params and form data, NOT JSON bodies
       const request = {
         url: "https://api.twitter.com/2/tweets",
         method: "POST",
-        data: tweetData,
+        // Intentionally NOT including 'data' - it shouldn't be part of OAuth signature
       };
 
       const authHeader = oauth.toHeader(oauth.authorize(request, token));
