@@ -49,8 +49,10 @@ jobs:
         id: prerender-cache
         with:
           path: prerendered
-          key: prerendered-${{ runner.os }}-${{ hashFiles('src/data/blogPosts.json') }}
+          # Use a stable key that only changes weekly (allows accumulation of cached posts)
+          key: prerendered-${{ runner.os }}-v1-${{ github.run_number }}
           restore-keys: |
+            prerendered-${{ runner.os }}-v1-
             prerendered-${{ runner.os }}-
 
       - name: Show cache status
@@ -118,16 +120,6 @@ jobs:
 
       - name: Copy index.html to 404.html for GitHub Pages routing
         run: cp dist/index.html dist/404.html
-
-      - name: Save prerendered cache
-        if: always()
-        uses: actions/cache@v4
-        continue-on-error: true
-        with:
-          path: prerendered
-          key: prerendered-${{ runner.os }}-${{ hashFiles('src/data/blogPosts.json') }}
-          restore-keys: |
-            prerendered-${{ runner.os }}-
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
