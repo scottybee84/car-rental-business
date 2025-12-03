@@ -422,11 +422,12 @@ async function humanizeWithGPT(content, openaiApiKey, contentType = "content") {
     const OpenAI = (await import("openai")).default;
     const openai = new OpenAI({ apiKey: openaiApiKey });
 
-    const prompt = contentType === "title" 
-      ? `Rewrite this title to sound more human and less AI-generated. Keep it SEO-friendly and under 70 characters. Make it conversational and unique:\n\n"${content}"\n\nReturn ONLY the rewritten title, nothing else.`
-      : contentType === "excerpt"
-      ? `Rewrite this excerpt to sound more human and less AI-generated. Keep it under 200 characters. Make it engaging and conversational:\n\n"${content}"\n\nReturn ONLY the rewritten excerpt, nothing else.`
-      : `Rewrite this blog post content to sound more human and less AI-generated. 
+    const prompt =
+      contentType === "title"
+        ? `Rewrite this title to sound more human and less AI-generated. Keep it SEO-friendly and under 70 characters. Make it conversational and unique:\n\n"${content}"\n\nReturn ONLY the rewritten title, nothing else.`
+        : contentType === "excerpt"
+          ? `Rewrite this excerpt to sound more human and less AI-generated. Keep it under 200 characters. Make it engaging and conversational:\n\n"${content}"\n\nReturn ONLY the rewritten excerpt, nothing else.`
+          : `Rewrite this blog post content to sound more human and less AI-generated. 
 
 CRITICAL REQUIREMENTS:
 1. Add minor imperfections (start sentences with And/But/So sometimes)
@@ -454,15 +455,17 @@ Return ONLY the humanized HTML content, preserving all tags and links.`;
       messages: [
         {
           role: "system",
-          content: "You are a content editor who makes AI text sound human-written. You preserve HTML, links, and SEO elements while making the writing natural."
+          content:
+            "You are a content editor who makes AI text sound human-written. You preserve HTML, links, and SEO elements while making the writing natural.",
         },
         {
           role: "user",
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       temperature: 1.0, // Higher temperature for more variation
-      max_tokens: contentType === "title" ? 100 : contentType === "excerpt" ? 200 : 4000
+      max_tokens:
+        contentType === "title" ? 100 : contentType === "excerpt" ? 200 : 4000,
     });
 
     const humanized = response.choices[0].message.content.trim();
@@ -473,6 +476,213 @@ Return ONLY the humanized HTML content, preserving all tags and links.`;
     console.log(`   Using original content (high AI detection risk)`);
     return content;
   }
+}
+
+// ==================== CONTENT PROMOTION APIS ====================
+
+// 1. Google Indexing API - Get indexed immediately
+async function notifyGoogleIndexing(blogUrl) {
+  try {
+    const googleServiceAccount = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+
+    if (!googleServiceAccount) {
+      console.log(
+        `   ⚠️  GOOGLE_SERVICE_ACCOUNT_JSON not set - skipping Google indexing`
+      );
+      return false;
+    }
+
+    console.log(`📍 Submitting to Google Indexing API...`);
+
+    // Parse service account credentials
+    const credentials = JSON.parse(googleServiceAccount);
+
+    // Get OAuth2 token
+    const { JWT } = await import("google-auth-library");
+    const client = new JWT({
+      email: credentials.client_email,
+      key: credentials.private_key,
+      scopes: ["https://www.googleapis.com/auth/indexing"],
+    });
+
+    const token = await client.authorize();
+
+    // Submit URL to Google
+    const response = await fetch(
+      "https://indexing.googleapis.com/v3/urlNotifications:publish",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: blogUrl,
+          type: "URL_UPDATED",
+        }),
+      }
+    );
+
+    if (response.ok) {
+      console.log(`   ✅ Google notified - page will be indexed soon`);
+      return true;
+    } else {
+      const error = await response.text();
+      console.log(`   ⚠️  Google Indexing failed: ${error}`);
+      return false;
+    }
+  } catch (error) {
+    console.log(`   ⚠️  Google Indexing API error: ${error.message}`);
+    return false;
+  }
+}
+
+// 2. Buffer API - Share to social media
+async function shareToBuffer(blogPost, blogUrl) {
+  try {
+    const bufferToken = process.env.BUFFER_ACCESS_TOKEN;
+    const bufferProfileIds = process.env.BUFFER_PROFILE_IDS; // Comma-separated: "twitter_id,linkedin_id"
+
+    if (!bufferToken || !bufferProfileIds) {
+      console.log(
+        `   ⚠️  Buffer credentials not set - skipping social media sharing`
+      );
+      return false;
+    }
+
+    console.log(`📱 Sharing to social media via Buffer...`);
+
+    const profileIds = bufferProfileIds.split(",").map((id) => id.trim());
+    const socialText = `${blogPost.title}\n\n${blogPost.excerpt}\n\nRead more: ${blogUrl}`;
+
+    const response = await fetch(
+      "https://api.bufferapp.com/1/updates/create.json",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${bufferToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: socialText,
+          profile_ids: profileIds,
+          media: {
+            photo: blogPost.image,
+          },
+          shorten: false, // Use full URL for better tracking
+        }),
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`   ✅ Shared to ${profileIds.length} social profiles`);
+      return true;
+    } else {
+      const error = await response.text();
+      console.log(`   ⚠️  Buffer sharing failed: ${error}`);
+      return false;
+    }
+  } catch (error) {
+    console.log(`   ⚠️  Buffer API error: ${error.message}`);
+    return false;
+  }
+}
+
+// 3. Medium API - Syndicate content
+async function publishToMedium(blogPost, blogUrl) {
+  try {
+    const mediumToken = process.env.MEDIUM_INTEGRATION_TOKEN;
+    const mediumUserId = process.env.MEDIUM_USER_ID;
+
+    if (!mediumToken || !mediumUserId) {
+      console.log(`   ⚠️  Medium credentials not set - skipping syndication`);
+      return false;
+    }
+
+    console.log(`📝 Publishing to Medium...`);
+
+    // Add canonical link at the end of content
+    const mediumContent = `${blogPost.content}\n\n<p><em>Originally published at <a href="${blogUrl}">${blogUrl}</a></em></p>`;
+
+    const response = await fetch(
+      `https://api.medium.com/v1/users/${mediumUserId}/posts`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${mediumToken}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          title: blogPost.title,
+          contentFormat: "html",
+          content: mediumContent,
+          canonicalUrl: blogUrl, // Critical: points back to your site for SEO
+          tags: blogPost.keywords?.slice(0, 5) || [
+            "Tesla",
+            "Germany",
+            "Travel",
+          ],
+          publishStatus: "public",
+        }),
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`   ✅ Published to Medium: ${data.data.url}`);
+      return true;
+    } else {
+      const error = await response.text();
+      console.log(`   ⚠️  Medium publishing failed: ${error}`);
+      return false;
+    }
+  } catch (error) {
+    console.log(`   ⚠️  Medium API error: ${error.message}`);
+    return false;
+  }
+}
+
+// Master function to promote blog post across all channels
+async function promoteContent(blogPost) {
+  const blogUrl = `${siteUrl}/blog-posts/${blogPost.slug}`;
+
+  console.log(`\n🚀 Promoting content across channels...`);
+  console.log(`   URL: ${blogUrl}`);
+
+  const results = {
+    google: false,
+    buffer: false,
+    medium: false,
+  };
+
+  // Run all promotions in parallel for speed
+  const [googleResult, bufferResult, mediumResult] = await Promise.all([
+    notifyGoogleIndexing(blogUrl),
+    shareToBuffer(blogPost, blogUrl),
+    publishToMedium(blogPost, blogUrl),
+  ]);
+
+  results.google = googleResult;
+  results.buffer = bufferResult;
+  results.medium = mediumResult;
+
+  // Summary
+  const successCount = Object.values(results).filter((r) => r).length;
+  console.log(`\n📊 Promotion summary: ${successCount}/3 channels successful`);
+  if (results.google) console.log(`   ✅ Google Indexing`);
+  if (results.buffer) console.log(`   ✅ Social Media (Buffer)`);
+  if (results.medium) console.log(`   ✅ Medium Syndication`);
+
+  if (successCount === 0) {
+    console.log(
+      `   ⚠️  No promotion APIs configured - blog post created but not promoted`
+    );
+    console.log(`   Add API keys to GitHub Secrets for automatic promotion`);
+  }
+
+  return results;
 }
 
 // Generate unique topic variation based on date and time
@@ -609,38 +819,80 @@ async function generateBlogPost() {
       console.log(`\n🤖 Starting content humanization process...`);
 
       // Humanize main content
-      blogContent.content = await humanizeContent(
+      let humanizedContent = await humanizeContent(
         blogContent.content,
         UNDETECTABLE_AI_KEY,
         UNDETECTABLE_USER_ID
       );
 
+      if (humanizedContent === null) {
+        // Undetectable.AI failed, use GPT fallback
+        humanizedContent = await humanizeWithGPT(
+          blogContent.content,
+          AI_API_KEY,
+          "content"
+        );
+      }
+      blogContent.content = humanizedContent;
+
       // Humanize title
       console.log(`🤖 Humanizing title...`);
-      blogContent.title = await humanizeContent(
+      let humanizedTitle = await humanizeContent(
         blogContent.title,
         UNDETECTABLE_AI_KEY,
         UNDETECTABLE_USER_ID
       );
 
+      if (humanizedTitle === null) {
+        humanizedTitle = await humanizeWithGPT(
+          blogContent.title,
+          AI_API_KEY,
+          "title"
+        );
+      }
+      blogContent.title = humanizedTitle;
+
       // Humanize excerpt
       console.log(`🤖 Humanizing excerpt...`);
-      blogContent.excerpt = await humanizeContent(
+      let humanizedExcerpt = await humanizeContent(
         blogContent.excerpt,
         UNDETECTABLE_AI_KEY,
         UNDETECTABLE_USER_ID
       );
 
+      if (humanizedExcerpt === null) {
+        humanizedExcerpt = await humanizeWithGPT(
+          blogContent.excerpt,
+          AI_API_KEY,
+          "excerpt"
+        );
+      }
+      blogContent.excerpt = humanizedExcerpt;
+
       console.log(`✅ All content humanized successfully\n`);
     } else {
       console.log(
-        `\n⚠️  UNDETECTABLE_AI_KEY not set - content will not be humanized`
+        `\n⚠️  UNDETECTABLE_AI_KEY not set - using GPT fallback humanization`
       );
       console.log(
-        `   Add the key to GitHub Secrets to enable AI detection bypass`
+        `   For best results, add Undetectable.AI key to GitHub Secrets\n`
       );
-      console.log(
-        `   WARNING: Content may be detected as 100% AI without humanization\n`
+
+      // Use GPT-based humanization as fallback
+      blogContent.content = await humanizeWithGPT(
+        blogContent.content,
+        AI_API_KEY,
+        "content"
+      );
+      blogContent.title = await humanizeWithGPT(
+        blogContent.title,
+        AI_API_KEY,
+        "title"
+      );
+      blogContent.excerpt = await humanizeWithGPT(
+        blogContent.excerpt,
+        AI_API_KEY,
+        "excerpt"
       );
     }
 
@@ -704,6 +956,9 @@ async function generateBlogPost() {
     fs.writeFileSync(blogPostsPath, JSON.stringify(blogPosts, null, 2));
     console.log(`✅ Blog post saved: ${blogPost.title}`);
     console.log(`📊 Total blog posts: ${blogPosts.length}`);
+
+    // Promote content across all channels
+    await promoteContent(blogPost);
 
     return blogPost;
   } catch (error) {

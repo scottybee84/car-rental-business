@@ -4,17 +4,35 @@
 
 1. **Blog Generation Script** (`scripts/generate-blog-post.js`)
 
+   - **NEW**: Fetches recent Tesla/Elon Musk/EV news
+   - **NEW**: Creates opinion pieces that spin news positively
+   - **NEW**: Unique images for each blog post
    - Generates human-like, SEO-optimized blog posts
    - Includes internal linking to main page and deep links
    - Uses OpenAI GPT-4o-mini for cost efficiency
-   - Rotates through 30 different topics daily
+   - Connects news to Tesla rental benefits in Germany
 
 2. **GitHub Actions Workflow** (`.github/workflows/generate-blog.yml`)
    - Runs **twice daily** at 2 AM and 2 PM UTC
    - Can be triggered manually
+   - Fetches latest news before generating content
    - Auto-commits and pushes new blog posts
    - **Automatically regenerates sitemap** with new posts
-   - Ensures 5 years of unique content (730+ topics with variations)
+   - Creates timely, relevant opinion pieces
+
+## 📰 News API Setup (Optional but Recommended)
+
+For the best results, add a News API key (free tier available):
+
+1. Sign up at https://newsapi.org/register (free)
+2. Get your API key
+3. Add to GitHub Secrets:
+   - Name: `NEWS_API_KEY`
+   - Value: your-api-key-here
+
+**Without News API**: System will still generate high-quality opinion pieces using general Tesla/EV topics.
+
+See `NEWS_API_SETUP.md` for detailed instructions.
 
 ## 🔐 Step 1: Add OpenAI API Key to GitHub Secrets
 

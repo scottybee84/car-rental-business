@@ -7,13 +7,15 @@ const Footer = () => {
 
   const handleCheckAvailability = (e) => {
     e.preventDefault();
-    
+
     // If we're not on the home page, navigate there first
     if (location.pathname !== "/") {
       navigate("/", { state: { scrollToBooking: true } });
       // Wait for navigation, then scroll
       setTimeout(() => {
-        const formElement = document.querySelector(".booking-section-container");
+        const formElement = document.querySelector(
+          ".booking-section-container"
+        );
         if (formElement) {
           formElement.scrollIntoView({
             behavior: "smooth",

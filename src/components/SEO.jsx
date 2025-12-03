@@ -1,4 +1,4 @@
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from "react-helmet-async";
 
 const SEO = ({
   title,
@@ -6,12 +6,12 @@ const SEO = ({
   keywords,
   image,
   url,
-  type = 'website',
+  type = "website",
   structuredData,
   canonical,
   noindex = false,
 }) => {
-  const siteUrl = 'https://voltvoyages.io';
+  const siteUrl = "https://voltvoyages.io";
   const defaultImage = `${siteUrl}/og-image.jpg`; // Add your default OG image
   const fullUrl = url ? `${siteUrl}${url}` : siteUrl;
   const fullImage = image || defaultImage;
@@ -53,4 +53,3 @@ const SEO = ({
 };
 
 export default SEO;
-
