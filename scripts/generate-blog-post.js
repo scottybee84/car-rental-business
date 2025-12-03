@@ -333,25 +333,28 @@ async function humanizeContent(content, apiKey, userId) {
     console.log(`🤖 Humanizing content with Undetectable.AI...`);
     console.log(`   Content length: ${content.length} characters`);
 
-    // Submit content for humanization
-    const submitResponse = await fetch("https://api.undetectable.ai/submit", {
-      method: "POST",
-      headers: {
-        "api-key": apiKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        content: content,
-        readabilityLevel: "University",
-        purpose: "General Writing",
-        strength: "More Human", // Maximum humanization for heavily AI-detected content
-      }),
-    });
+    // Submit content for humanization (correct endpoint and format per docs)
+    const submitResponse = await fetch(
+      "https://humanize.undetectable.ai/submit",
+      {
+        method: "POST",
+        headers: {
+          apikey: apiKey, // lowercase 'apikey' per docs
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: content,
+          readability: "University", // 'readability' not 'readabilityLevel'
+          purpose: "General Writing",
+          strength: "More Human", // Maximum humanization
+          model: "v11", // Best for English, high humanization
+        }),
+      }
+    );
 
     if (!submitResponse.ok) {
-      throw new Error(
-        `API returned ${submitResponse.status}: ${submitResponse.statusText}`
-      );
+      const errorText = await submitResponse.text();
+      throw new Error(`API returned ${submitResponse.status}: ${errorText}`);
     }
 
     const submitData = await submitResponse.json();
@@ -366,17 +369,23 @@ async function humanizeContent(content, apiKey, userId) {
 
     // Poll for completion (Undetectable.AI processes asynchronously)
     let attempts = 0;
-    const maxAttempts = 60; // 60 seconds max wait (longer content takes more time)
+    const maxAttempts = 60; // 60 seconds max wait
 
     while (attempts < maxAttempts) {
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second between checks
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds between checks (per docs: every 5-10 seconds)
 
+      // Correct endpoint: POST to /document with id in body
       const checkResponse = await fetch(
-        `https://api.undetectable.ai/document/${documentId}`,
+        "https://humanize.undetectable.ai/document",
         {
+          method: "POST",
           headers: {
-            "api-key": apiKey,
+            apikey: apiKey,
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify({
+            id: documentId,
+          }),
         }
       );
 
@@ -386,7 +395,8 @@ async function humanizeContent(content, apiKey, userId) {
 
       const checkData = await checkResponse.json();
 
-      if (checkData.status === "done" && checkData.output) {
+      // Check if document has output (means it's done)
+      if (checkData.output) {
         console.log(`✅ Content humanized successfully`);
         console.log(
           `   Original: ${content.length} chars → Humanized: ${checkData.output.length} chars`
@@ -394,21 +404,15 @@ async function humanizeContent(content, apiKey, userId) {
         return checkData.output;
       }
 
-      if (checkData.status === "error") {
-        throw new Error(
-          `Humanization failed: ${checkData.message || "Unknown error"}`
-        );
-      }
-
       // Still processing
-      if (attempts % 5 === 0 && attempts > 0) {
-        console.log(`   Still processing... (${attempts}s elapsed)`);
+      if (attempts % 3 === 0 && attempts > 0) {
+        console.log(`   Still processing... (${attempts * 2}s elapsed)`);
       }
 
       attempts++;
     }
 
-    throw new Error("Humanization timeout after 60 seconds");
+    throw new Error("Humanization timeout after 120 seconds");
   } catch (error) {
     console.log(`⚠️  Humanization API failed: ${error.message}`);
     console.log(`   Falling back to GPT-based humanization...`);
