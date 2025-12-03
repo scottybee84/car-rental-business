@@ -703,9 +703,28 @@ async function postToTwitter(blogPost, blogUrl) {
 
     console.log(`🐦 Posting to Twitter with OAuth 1.0a...`);
 
+    // Debug: Log credentials (safely)
+    console.log(`\n   🔍 DEBUG - Credentials Check:`);
+    console.log(
+      `      API Key: ${twitterApiKey?.substring(0, 10)}...${twitterApiKey?.substring(twitterApiKey.length - 4)}`
+    );
+    console.log(`      API Key length: ${twitterApiKey?.length} chars`);
+    console.log(
+      `      API Secret: ${twitterApiSecret ? `${twitterApiSecret.substring(0, 10)}...(${twitterApiSecret.length} chars)` : "MISSING"}`
+    );
+    console.log(
+      `      Access Token: ${twitterAccessToken?.substring(0, 15)}...${twitterAccessToken?.substring(twitterAccessToken.length - 4)}`
+    );
+    console.log(
+      `      Access Token length: ${twitterAccessToken?.length} chars`
+    );
+    console.log(
+      `      Access Secret: ${twitterAccessSecret ? `${twitterAccessSecret.substring(0, 10)}...(${twitterAccessSecret.length} chars)` : "MISSING"}`
+    );
+
     // Generate smart hashtags based on content
     const hashtags = generateSmartHashtags(blogPost);
-    console.log(`   📌 Hashtags: ${hashtags.join(" ")}`);
+    console.log(`\n   📌 Hashtags: ${hashtags.join(" ")}`);
 
     // Create tweet thread (multiple tweets for better engagement)
     const tweets = createTweetThread(blogPost, blogUrl, hashtags);
@@ -733,6 +752,8 @@ async function postToTwitter(blogPost, blogUrl) {
       key: twitterAccessToken,
       secret: twitterAccessSecret,
     };
+
+    console.log(`\n   🔧 OAuth 1.0a setup complete`);
 
     // Upload image first (if available)
     let mediaId = null;
@@ -768,9 +789,30 @@ async function postToTwitter(blogPost, blogUrl) {
       const authHeader = oauth.toHeader(oauth.authorize(request, token));
 
       if (i === 0) {
-        console.log(`   🔍 Posting Tweet 1...`);
+        console.log(`\n   🔍 DEBUG - Posting Tweet 1...`);
         console.log(`      Tweet text length: ${tweetText.length} chars`);
         console.log(`      Has media: ${!!mediaId}`);
+        console.log(`\n   📤 Request Details:`);
+        console.log(`      URL: ${request.url}`);
+        console.log(`      Method: ${request.method}`);
+        console.log(
+          `      Body: ${JSON.stringify(tweetData, null, 2).substring(0, 200)}...`
+        );
+        console.log(`\n   🔐 Authorization Header:`);
+        console.log(`      ${JSON.stringify(authHeader, null, 2)}`);
+        console.log(`\n   🔑 OAuth Signature Base String Components:`);
+        const authData = oauth.authorize(request, token);
+        console.log(`      oauth_consumer_key: ${authData.oauth_consumer_key}`);
+        console.log(`      oauth_token: ${authData.oauth_token}`);
+        console.log(
+          `      oauth_signature_method: ${authData.oauth_signature_method}`
+        );
+        console.log(`      oauth_timestamp: ${authData.oauth_timestamp}`);
+        console.log(`      oauth_nonce: ${authData.oauth_nonce}`);
+        console.log(`      oauth_version: ${authData.oauth_version}`);
+        console.log(
+          `      oauth_signature: ${authData.oauth_signature?.substring(0, 20)}...`
+        );
       }
 
       const response = await fetch(request.url, {
@@ -799,8 +841,36 @@ async function postToTwitter(blogPost, blogUrl) {
         }
       } else {
         const error = await response.text();
-        console.log(`   ⚠️  Tweet ${i + 1} failed: ${error}`);
-        console.log(`   Response status: ${response.status}`);
+        console.log(`\n   ❌ Tweet ${i + 1} FAILED:`);
+        console.log(`      Response status: ${response.status}`);
+        console.log(
+          `      Response headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}`
+        );
+        console.log(`      Error body: ${error}`);
+
+        // Additional debugging for 401
+        if (response.status === 401) {
+          console.log(`\n   🔍 401 UNAUTHORIZED - Possible Issues:`);
+          console.log(`      1. Tokens don't have Read+Write permissions`);
+          console.log(
+            `      2. Tokens were not regenerated after setting permissions`
+          );
+          console.log(
+            `      3. API Key/Secret mismatch with Access Token/Secret`
+          );
+          console.log(`      4. App suspended or credentials revoked`);
+          console.log(`\n   ✅ To Fix:`);
+          console.log(
+            `      1. Go to: https://developer.twitter.com/en/portal/dashboard`
+          );
+          console.log(
+            `      2. Settings → Ensure "Read and Write" permissions`
+          );
+          console.log(
+            `      3. Keys and tokens → Regenerate Access Token & Secret`
+          );
+          console.log(`      4. Update GitHub Secrets with NEW tokens`);
+        }
         break;
       }
     }
