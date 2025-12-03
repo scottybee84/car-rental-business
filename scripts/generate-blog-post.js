@@ -694,14 +694,24 @@ async function postToTwitter(blogPost, blogUrl) {
     }
 
     console.log(`🐦 Posting to Twitter with thread + image...`);
-    
+
     // Debug: Check credentials are present (show first/last 4 chars only for security)
     console.log(`   🔍 Debug: Checking credentials...`);
-    console.log(`   API Key: ${twitterApiKey ? twitterApiKey.substring(0, 4) + '...' + twitterApiKey.substring(twitterApiKey.length - 4) : 'MISSING'}`);
-    console.log(`   API Secret: ${twitterApiSecret ? twitterApiSecret.substring(0, 4) + '...' + twitterApiSecret.substring(twitterApiSecret.length - 4) : 'MISSING'}`);
-    console.log(`   Access Token: ${twitterAccessToken ? twitterAccessToken.substring(0, 4) + '...' + twitterAccessToken.substring(twitterAccessToken.length - 4) : 'MISSING'}`);
-    console.log(`   Access Secret: ${twitterAccessSecret ? twitterAccessSecret.substring(0, 4) + '...' + twitterAccessSecret.substring(twitterAccessSecret.length - 4) : 'MISSING'}`);
-    console.log(`   Bearer Token: ${twitterBearerToken ? twitterBearerToken.substring(0, 10) + '...' : 'MISSING'}`);
+    console.log(
+      `   API Key: ${twitterApiKey ? twitterApiKey.substring(0, 4) + "..." + twitterApiKey.substring(twitterApiKey.length - 4) : "MISSING"}`
+    );
+    console.log(
+      `   API Secret: ${twitterApiSecret ? twitterApiSecret.substring(0, 4) + "..." + twitterApiSecret.substring(twitterApiSecret.length - 4) : "MISSING"}`
+    );
+    console.log(
+      `   Access Token: ${twitterAccessToken ? twitterAccessToken.substring(0, 4) + "..." + twitterAccessToken.substring(twitterAccessToken.length - 4) : "MISSING"}`
+    );
+    console.log(
+      `   Access Secret: ${twitterAccessSecret ? twitterAccessSecret.substring(0, 4) + "..." + twitterAccessSecret.substring(twitterAccessSecret.length - 4) : "MISSING"}`
+    );
+    console.log(
+      `   Bearer Token: ${twitterBearerToken ? twitterBearerToken.substring(0, 10) + "..." : "MISSING"}`
+    );
 
     // Generate smart hashtags based on content
     const hashtags = generateSmartHashtags(blogPost);
@@ -711,8 +721,7 @@ async function postToTwitter(blogPost, blogUrl) {
     const tweets = createTweetThread(blogPost, blogUrl, hashtags);
     console.log(`   📝 Created thread with ${tweets.length} tweets`);
 
-    // Post tweet thread using Twitter API v2
-    // We'll use OAuth 1.0a for posting (required by Twitter)
+    // Use Twitter API v2 with proper OAuth 1.0a
     const { default: OAuth } = await import("oauth-1.0a");
     const crypto = await import("crypto");
 
@@ -735,6 +744,8 @@ async function postToTwitter(blogPost, blogUrl) {
       secret: twitterAccessSecret,
     };
 
+    console.log(`   🔑 Using Twitter API v2 with OAuth 1.0a user context...`);
+
     // Upload image first (if available)
     let mediaId = null;
     if (blogPost.image && blogPost.image.startsWith("/blog-images/")) {
@@ -745,13 +756,14 @@ async function postToTwitter(blogPost, blogUrl) {
       }
     }
 
-    // Post tweet thread
+    // Post tweet thread using v2 API
     let previousTweetId = null;
     let postedCount = 0;
 
     for (let i = 0; i < tweets.length; i++) {
       const tweetText = tweets[i];
 
+      // Build request data for v2 API
       const tweetData = {
         text: tweetText,
         ...(previousTweetId && {
@@ -760,21 +772,28 @@ async function postToTwitter(blogPost, blogUrl) {
         ...(i === 0 && mediaId && { media: { media_ids: [mediaId] } }),
       };
 
+      // For v2 with JSON body, OAuth signature should NOT include body
+      // Only include URL and method in OAuth request
       const request = {
         url: "https://api.twitter.com/2/tweets",
         method: "POST",
-        data: tweetData,
+        data: {}, // Empty data for OAuth signature (body not included)
       };
 
       const authHeader = oauth.toHeader(oauth.authorize(request, token));
-      
+
       // Debug: Log request details (sanitized)
       if (i === 0) {
         console.log(`   🔍 Request details for Tweet 1:`);
         console.log(`      URL: ${request.url}`);
-        console.log(`      Has Authorization header: ${!!authHeader.Authorization}`);
+        console.log(
+          `      Has Authorization header: ${!!authHeader.Authorization}`
+        );
         console.log(`      Tweet text length: ${tweetText.length} chars`);
         console.log(`      Has media: ${!!mediaId}`);
+        console.log(
+          `      Request body: ${JSON.stringify(tweetData).substring(0, 100)}...`
+        );
       }
 
       const response = await fetch(request.url, {
@@ -788,8 +807,14 @@ async function postToTwitter(blogPost, blogUrl) {
 
       if (response.ok) {
         const data = await response.json();
-        previousTweetId = data.data.id;
+        previousTweetId = data.data.id; // v2 uses id (not id_str)
         postedCount++;
+
+        if (i === 0) {
+          console.log(
+            `   ✅ Tweet 1 posted successfully! ID: ${previousTweetId}`
+          );
+        }
 
         // Wait 2 seconds between tweets to avoid rate limits
         if (i < tweets.length - 1) {
