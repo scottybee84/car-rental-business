@@ -777,7 +777,7 @@ async function postToTwitter(blogPost, blogUrl) {
       };
 
       const authHeader = oauth.toHeader(oauth.authorize(request, token));
-      
+
       // Debug: Log request details (sanitized)
       if (i === 0) {
         console.log(`   🔍 Request details for Tweet 1:`);
@@ -791,8 +791,11 @@ async function postToTwitter(blogPost, blogUrl) {
 
       // Convert data to form-encoded string
       const formBody = Object.keys(requestData)
-        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(requestData[key]))
-        .join('&');
+        .map(
+          (key) =>
+            encodeURIComponent(key) + "=" + encodeURIComponent(requestData[key])
+        )
+        .join("&");
 
       const response = await fetch(request.url, {
         method: "POST",
