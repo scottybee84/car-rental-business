@@ -684,7 +684,7 @@ async function postToTwitter(blogPost, blogUrl) {
     const twitterClientId = process.env.TWITTER_CLIENT_ID;
     const twitterClientSecret = process.env.TWITTER_CLIENT_SECRET;
     const twitterRefreshToken = process.env.TWITTER_REFRESH_TOKEN;
-    
+
     // OAuth 1.0a credentials (for media upload only)
     const twitterApiKey = process.env.TWITTER_API_KEY;
     const twitterApiSecret = process.env.TWITTER_API_SECRET;
@@ -706,17 +706,28 @@ async function postToTwitter(blogPost, blogUrl) {
     }
 
     // Check OAuth 1.0a for media upload
-    const hasOAuth1 = twitterApiKey && twitterApiSecret && twitterAccessToken && twitterAccessSecret;
-    
+    const hasOAuth1 =
+      twitterApiKey &&
+      twitterApiSecret &&
+      twitterAccessToken &&
+      twitterAccessSecret;
+
     console.log(`🐦 Posting to Twitter with OAuth 2.0 + v2 API...`);
 
     // Debug: Log credentials (safely)
     console.log(`\n   🔍 Credentials Check:`);
-    console.log(`      OAuth 2.0 Client ID: ${twitterClientId ? '✅ Set' : '❌ Missing'}`);
-    console.log(`      OAuth 2.0 Client Secret: ${twitterClientSecret ? '✅ Set' : '❌ Missing'}`);
-    console.log(`      OAuth 2.0 Refresh Token: ${twitterRefreshToken ? '✅ Set' : '❌ Missing'}`);
-    console.log(`      OAuth 1.0a (for media): ${hasOAuth1 ? '✅ Set' : '⚠️  Not set (media upload will fail)'}`);
-
+    console.log(
+      `      OAuth 2.0 Client ID: ${twitterClientId ? "✅ Set" : "❌ Missing"}`
+    );
+    console.log(
+      `      OAuth 2.0 Client Secret: ${twitterClientSecret ? "✅ Set" : "❌ Missing"}`
+    );
+    console.log(
+      `      OAuth 2.0 Refresh Token: ${twitterRefreshToken ? "✅ Set" : "❌ Missing"}`
+    );
+    console.log(
+      `      OAuth 1.0a (for media): ${hasOAuth1 ? "✅ Set" : "⚠️  Not set (media upload will fail)"}`
+    );
 
     // Generate smart hashtags based on content
     const hashtags = generateSmartHashtags(blogPost);
