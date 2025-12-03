@@ -45,7 +45,7 @@ const Blog = () => {
               <h1>Our Blog</h1>
               <p
                 className="small-text centered"
-                style={{ color: "#ffffff", opacity: 0.9 }}
+                style={{ color: "#ffffff", opacity: 0.9, textAlign: "center" }}
               >
                 Expert tips, guides, and insights for renting a Tesla in
                 Germany. Everything U.S. travelers need to know.
