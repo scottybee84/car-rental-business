@@ -205,22 +205,64 @@ const authorNames = [
 
 const siteUrl = "https://voltvoyages.io";
 
-// Fetch recent Tesla/Elon Musk news from a news API
-async function fetchRecentTeslaNews() {
-  // Using NewsAPI or similar - you can also use Google News RSS or other sources
-  // For now, we'll use a free news aggregator approach
-
+// Parse Google News RSS feed
+async function parseGoogleNewsRSS(rssXml) {
   try {
-    // Try to fetch from NewsAPI (requires API key, but has free tier)
+    // Simple RSS parser - extract items
+    const items = [];
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+    let match;
+
+    while ((match = itemRegex.exec(rssXml)) !== null) {
+      const itemXml = match[1];
+
+      // Extract title
+      const titleMatch = /<title><!\[CDATA\[(.*?)\]\]><\/title>/.exec(itemXml);
+      const title = titleMatch ? titleMatch[1] : "";
+
+      // Extract description
+      const descMatch =
+        /<description><!\[CDATA\[(.*?)\]\]><\/description>/.exec(itemXml);
+      const description = descMatch
+        ? descMatch[1].replace(/<[^>]*>/g, "").substring(0, 200)
+        : "";
+
+      // Extract link
+      const linkMatch = /<link>(.*?)<\/link>/.exec(itemXml);
+      const url = linkMatch ? linkMatch[1] : "";
+
+      // Extract date
+      const dateMatch = /<pubDate>(.*?)<\/pubDate>/.exec(itemXml);
+      const publishedAt = dateMatch
+        ? new Date(dateMatch[1]).toISOString()
+        : new Date().toISOString();
+
+      if (title) {
+        items.push({ title, description, url, publishedAt });
+      }
+    }
+
+    return items;
+  } catch (error) {
+    return [];
+  }
+}
+
+// Fetch recent Tesla/Elon Musk news from multiple sources
+async function fetchRecentTeslaNews() {
+  try {
+    // Try NewsAPI first (if API key exists)
     const newsApiKey = process.env.NEWS_API_KEY;
+    let articles = [];
 
     if (newsApiKey) {
+      console.log("   Trying NewsAPI...");
       const query = encodeURIComponent(
         'Tesla OR "Elon Musk" OR "electric vehicles" OR "EV charging"'
       );
       const url = `https://newsapi.org/v2/everything?q=${query}&language=en&sortBy=publishedAt&pageSize=10&apiKey=${newsApiKey}`;
 
-      return new Promise((resolve, reject) => {
+      articles = await new Promise((resolve) => {
         https
           .get(url, (res) => {
             let data = "";
@@ -231,7 +273,6 @@ async function fetchRecentTeslaNews() {
               try {
                 const parsed = JSON.parse(data);
                 if (parsed.articles && parsed.articles.length > 0) {
-                  // Return top articles
                   resolve(parsed.articles.slice(0, 5));
                 } else {
                   resolve([]);
@@ -243,28 +284,76 @@ async function fetchRecentTeslaNews() {
           })
           .on("error", () => resolve([]));
       });
+
+      if (articles.length > 0) {
+        console.log(`   ✅ NewsAPI returned ${articles.length} articles`);
+        return articles;
+      }
     }
 
-    // Fallback: Return placeholder news topics if no API key
+    // Fallback 1: Google News RSS (FREE - no API key needed!)
+    console.log("   Trying Google News RSS...");
+    const googleNewsUrl =
+      "https://news.google.com/rss/search?q=Tesla+OR+%22Elon+Musk%22+OR+%22electric+vehicles%22&hl=en&gl=US&ceid=US:en&num=10";
+
+    articles = await new Promise((resolve) => {
+      https
+        .get(googleNewsUrl, (res) => {
+          let data = "";
+          res.on("data", (chunk) => {
+            data += chunk;
+          });
+          res.on("end", async () => {
+            const parsed = await parseGoogleNewsRSS(data);
+            resolve(parsed);
+          });
+        })
+        .on("error", () => resolve([]));
+    });
+
+    if (articles.length > 0) {
+      console.log(`   ✅ Google News RSS returned ${articles.length} articles`);
+      return articles.slice(0, 5);
+    }
+
+    // Fallback 2: Static recent topics (last resort)
+    console.log("   Using static Tesla topics as last resort");
     return [
       {
-        title: "Tesla Announces New Supercharger Expansion in Europe",
+        title:
+          "Tesla Supercharger Network Continues Rapid Expansion Across Europe",
         description:
-          "Tesla continues to expand its Supercharger network across Europe, making EV travel more convenient.",
+          "Tesla's commitment to expanding its Supercharger network makes EV travel more accessible across Europe, particularly in Germany where infrastructure growth is accelerating.",
         url: "https://www.tesla.com/",
         publishedAt: new Date().toISOString(),
       },
       {
-        title: "Electric Vehicle Adoption Accelerates in Germany",
+        title: "Electric Vehicle Adoption Reaches Record Highs in Germany",
         description:
-          "Germany sees record growth in electric vehicle adoption, with Tesla leading the market.",
+          "Germany sees unprecedented growth in electric vehicle adoption, with Tesla leading the charge as American travelers increasingly choose EVs for their European adventures.",
+        url: "https://www.tesla.com/",
+        publishedAt: new Date().toISOString(),
+      },
+      {
+        title: "Tesla Model Y Continues to Dominate European EV Market",
+        description:
+          "The Tesla Model Y remains the top choice for travelers and residents alike, offering perfect blend of space, technology, and efficiency for German road trips.",
         url: "https://www.tesla.com/",
         publishedAt: new Date().toISOString(),
       },
     ];
   } catch (error) {
-    console.log("⚠️  Could not fetch news, using fallback topics");
-    return [];
+    console.log("⚠️  Error fetching news, using fallback topics");
+    return [
+      {
+        title:
+          "Tesla Innovation Continues to Transform Electric Vehicle Industry",
+        description:
+          "Latest Tesla developments showcase why electric vehicles are the future of sustainable travel in Germany.",
+        url: "https://www.tesla.com/",
+        publishedAt: new Date().toISOString(),
+      },
+    ];
   }
 }
 
