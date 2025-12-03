@@ -796,7 +796,7 @@ async function postToTwitter(blogPost, blogUrl) {
 
       // For v2 API, try OAuth 2.0 first, fallback to OAuth 1.0a
       // Free tier requires OAuth 2.0 for posting
-      const useOAuth2 = process.env.TWITTER_REFRESH_TOKEN;
+      let useOAuth2 = process.env.TWITTER_REFRESH_TOKEN ? true : false;
       let response;
 
       if (useOAuth2) {
@@ -825,7 +825,7 @@ async function postToTwitter(blogPost, blogUrl) {
             );
             console.log(`      Posting to: POST /2/tweets`);
 
-            response = await fetch("https://api.twitter.com/2/tweets", {
+            response = await fetch("https://api.x.com/2/tweets", {
               method: "POST",
               headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -1029,7 +1029,7 @@ async function postToTwitterOAuth1(
       };
 
       const request = {
-        url: "https://api.twitter.com/2/tweets",
+        url: "https://api.x.com/2/tweets",
         method: "POST",
         data: tweetData,
       };
