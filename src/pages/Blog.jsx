@@ -42,12 +42,11 @@ const Blog = () => {
         <section className="section" style={{ padding: "4rem 0" }}>
           <div className="content-wrapper">
             <div className="heading-580px centered">
-              <div className="subheadline-wrapper">
-                <div className="subheadline-dot"></div>
-                <div>Blog</div>
-              </div>
               <h1>Our Blog</h1>
-              <p className="small-text dusk-text centered">
+              <p
+                className="small-text centered"
+                style={{ color: "#ffffff", opacity: 0.9 }}
+              >
                 Expert tips, guides, and insights for renting a Tesla in
                 Germany. Everything U.S. travelers need to know.
               </p>
