@@ -7,27 +7,33 @@
         xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
   <url>
     <loc>https://voltvoyages.io/</loc>
-    <lastmod>2025-12-03T13:08:12.185Z</lastmod>
+    <lastmod>2025-12-03T13:18:07.936Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/impressum</loc>
-    <lastmod>2025-12-03T13:08:12.185Z</lastmod>
+    <lastmod>2025-12-03T13:18:07.936Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/privacy-policy</loc>
-    <lastmod>2025-12-03T13:08:12.185Z</lastmod>
+    <lastmod>2025-12-03T13:18:07.936Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/terms-of-service</loc>
-    <lastmod>2025-12-03T13:08:12.185Z</lastmod>
+    <lastmod>2025-12-03T13:18:07.936Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://voltvoyages.io/blog-posts/tesla-supercharger-expansion-germany-rental-1</loc>
+    <lastmod>2025-12-03T13:17:01.503Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/blog-posts/tesla-supercharger-expansion-germany-rental-model-y-2025</loc>
