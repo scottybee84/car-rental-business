@@ -75,6 +75,12 @@ jobs:
           else
             # Commit without [skip ci] so deploy workflow runs automatically
             git commit -m "Auto-generate blog post with AI image"
+            
+            # Pull latest changes before pushing to avoid conflicts
+            echo "Pulling latest changes..."
+            git pull --rebase origin main
+            
+            # Push changes
             git push
             echo "✅ Changes pushed to main branch"
           fi
