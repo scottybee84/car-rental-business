@@ -717,19 +717,29 @@ async function postToTwitter(blogPost, blogUrl) {
     // Try to load refresh token from cache file first
     const tokenCacheFile = path.join(__dirname, "../.twitter-refresh-token");
     let actualRefreshToken = twitterRefreshToken;
-
-    if (fs.existsSync(tokenCacheFile)) {
+    
+    // Always prefer GitHub Secret if set (allows manual override of bad cache)
+    if (twitterRefreshToken) {
+      console.log(`   🔑 Using refresh token from GitHub Secret`);
+      actualRefreshToken = twitterRefreshToken;
+      
+      // Check if it's different from cached token
+      if (fs.existsSync(tokenCacheFile)) {
+        const cachedToken = fs.readFileSync(tokenCacheFile, "utf-8").trim();
+        if (cachedToken !== twitterRefreshToken) {
+          console.log(`   ♻️  GitHub Secret differs from cache - using Secret (manual update detected)`);
+        }
+      }
+      
+      // Save/update cache with current token
+      fs.writeFileSync(tokenCacheFile, twitterRefreshToken);
+    } else if (fs.existsSync(tokenCacheFile)) {
+      // Fallback to cache if no GitHub Secret
       const cachedToken = fs.readFileSync(tokenCacheFile, "utf-8").trim();
       if (cachedToken) {
-        console.log(
-          `   📂 Found cached refresh token (auto-updated from previous run)`
-        );
+        console.log(`   📂 Using cached refresh token (no GitHub Secret set)`);
         actualRefreshToken = cachedToken;
       }
-    } else if (twitterRefreshToken) {
-      // First run - save initial refresh token to file
-      fs.writeFileSync(tokenCacheFile, twitterRefreshToken);
-      console.log(`   💾 Saved initial refresh token to cache file`);
     }
 
     // Debug: Log credentials (safely)
