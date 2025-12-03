@@ -774,22 +774,11 @@ async function postToTwitter(blogPost, blogUrl) {
         ...(i === 0 && mediaId && { media: { media_ids: [mediaId] } }),
       };
 
-      // For v2 API with OAuth 1.0a, sign only URL+method (not body)
-      const request = {
-        url: "https://api.twitter.com/2/tweets",
-        method: "POST",
-        data: {}, // Empty - JSON body not included in OAuth signature
-      };
-
-      const authHeader = oauth.toHeader(oauth.authorize(request, token));
-
       // Debug: Log request details (sanitized)
       if (i === 0) {
         console.log(`   🔍 Request details for Tweet 1:`);
-        console.log(`      URL: ${request.url}`);
-        console.log(
-          `      Has Authorization header: ${!!authHeader.Authorization}`
-        );
+        console.log(`      URL: https://api.twitter.com/2/tweets`);
+        console.log(`      Using Bearer Token: ${!!twitterBearerToken}`);
         console.log(`      Tweet text length: ${tweetText.length} chars`);
         console.log(`      Has media: ${!!mediaId}`);
         console.log(
@@ -797,10 +786,11 @@ async function postToTwitter(blogPost, blogUrl) {
         );
       }
 
-      const response = await fetch(request.url, {
+      // Use Bearer Token for v2 API (per official docs)
+      const response = await fetch("https://api.twitter.com/2/tweets", {
         method: "POST",
         headers: {
-          ...authHeader,
+          Authorization: `Bearer ${twitterBearerToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(tweetData),
