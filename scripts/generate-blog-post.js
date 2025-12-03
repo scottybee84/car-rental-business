@@ -2,6 +2,8 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import https from "https";
+import { createWriteStream } from "fs";
+import { pipeline } from "stream/promises";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -266,8 +268,50 @@ async function fetchRecentTeslaNews() {
   }
 }
 
+// Download image from URL and save it locally
+async function downloadAndSaveImage(imageUrl, slug) {
+  try {
+    console.log(`   📥 Downloading image to save permanently...`);
+
+    // Create directory for blog images if it doesn't exist
+    const imagesDir = path.join(__dirname, "../public/blog-images");
+    if (!fs.existsSync(imagesDir)) {
+      fs.mkdirSync(imagesDir, { recursive: true });
+    }
+
+    // Generate filename based on slug
+    const filename = `${slug}.png`;
+    const filepath = path.join(imagesDir, filename);
+
+    // Download the image
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to download image: ${response.status}`);
+    }
+
+    // Save to file
+    const buffer = await response.arrayBuffer();
+    fs.writeFileSync(filepath, Buffer.from(buffer));
+
+    console.log(`   ✅ Image saved: public/blog-images/${filename}`);
+
+    // Return the permanent URL (will be served from your site)
+    return `/blog-images/${filename}`;
+  } catch (error) {
+    console.log(`   ⚠️  Failed to download image: ${error.message}`);
+    console.log(`   Using temporary URL (will expire in 1-2 hours)`);
+    return imageUrl; // Fallback to temporary URL
+  }
+}
+
 // Generate AI image using OpenAI DALL-E based on article content
-async function generateAIImage(articleTitle, newsContext, keywords, apiKey) {
+async function generateAIImage(
+  articleTitle,
+  newsContext,
+  keywords,
+  slug,
+  apiKey
+) {
   try {
     const OpenAI = (await import("openai")).default;
     const openai = new OpenAI({ apiKey });
@@ -302,16 +346,19 @@ No text or logos in the image.`;
       style: "natural", // Natural photographic style
     });
 
-    const imageUrl = response.data[0].url;
+    const temporaryUrl = response.data[0].url;
     const revisedPrompt = response.data[0].revised_prompt;
     console.log(`✅ AI image generated successfully`);
     console.log(
       `   DALL-E revised prompt: ${revisedPrompt?.substring(0, 100)}...`
     );
 
-    // Return both URL and metadata for SEO
+    // Download and save the image permanently
+    const permanentUrl = await downloadAndSaveImage(temporaryUrl, slug);
+
+    // Return both permanent URL and metadata for SEO
     return {
-      url: imageUrl,
+      url: permanentUrl,
       altText: `${articleTitle} - Tesla Model Y rental in Germany`,
       description: revisedPrompt || imagePrompt,
     };
@@ -905,6 +952,7 @@ async function generateBlogPost() {
       blogContent.title,
       recentNews.length > 0 ? recentNews[0].title : "",
       blogContent.keywords,
+      blogContent.slug, // Pass slug for filename
       AI_API_KEY
     );
 

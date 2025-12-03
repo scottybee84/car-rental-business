@@ -69,12 +69,12 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add src/data/blogPosts.json public/sitemap.xml
+          git add src/data/blogPosts.json public/sitemap.xml public/blog-images/
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
             # Commit without [skip ci] so deploy workflow runs automatically
-            git commit -m "Auto-generate blog post"
+            git commit -m "Auto-generate blog post with AI image"
             git push
             echo "✅ Changes pushed to main branch"
           fi
