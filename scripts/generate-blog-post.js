@@ -677,50 +677,46 @@ async function notifyGoogleIndexing(blogUrl) {
   }
 }
 
-// 2. Twitter API - Auto-post with smart hashtags and threading (OAuth 1.0a)
+// 2. Twitter API - Auto-post with smart hashtags and threading (OAuth 2.0 + v2 API)
 async function postToTwitter(blogPost, blogUrl) {
   try {
-    // OAuth 1.0a credentials (standard for automated posting)
+    // OAuth 2.0 credentials (required for v2 API on Free tier)
+    const twitterClientId = process.env.TWITTER_CLIENT_ID;
+    const twitterClientSecret = process.env.TWITTER_CLIENT_SECRET;
+    const twitterRefreshToken = process.env.TWITTER_REFRESH_TOKEN;
+    
+    // OAuth 1.0a credentials (for media upload only)
     const twitterApiKey = process.env.TWITTER_API_KEY;
     const twitterApiSecret = process.env.TWITTER_API_SECRET;
     const twitterAccessToken = process.env.TWITTER_ACCESS_TOKEN;
     const twitterAccessSecret = process.env.TWITTER_ACCESS_SECRET;
 
-    if (
-      !twitterApiKey ||
-      !twitterApiSecret ||
-      !twitterAccessToken ||
-      !twitterAccessSecret
-    ) {
+    // Check if OAuth 2.0 is configured (required for Free tier posting)
+    if (!twitterClientId || !twitterClientSecret || !twitterRefreshToken) {
       console.log(
-        `   ⚠️  Twitter OAuth 1.0a credentials not set - skipping Twitter posting`
+        `   ⚠️  OAuth 2.0 credentials not set - required for v2 API on Free tier`
       );
       console.log(
-        `   Required secrets: TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET`
+        `   Required: TWITTER_CLIENT_ID, TWITTER_CLIENT_SECRET, TWITTER_REFRESH_TOKEN`
+      );
+      console.log(
+        `   Run: node scripts/twitter-oauth2-setup.js to get refresh token`
       );
       return false;
     }
 
-    console.log(`🐦 Posting to Twitter with OAuth 1.0a...`);
+    // Check OAuth 1.0a for media upload
+    const hasOAuth1 = twitterApiKey && twitterApiSecret && twitterAccessToken && twitterAccessSecret;
+    
+    console.log(`🐦 Posting to Twitter with OAuth 2.0 + v2 API...`);
 
     // Debug: Log credentials (safely)
-    console.log(`\n   🔍 DEBUG - Credentials Check:`);
-    console.log(
-      `      API Key: ${twitterApiKey?.substring(0, 10)}...${twitterApiKey?.substring(twitterApiKey.length - 4)}`
-    );
-    console.log(`      API Key length: ${twitterApiKey?.length} chars`);
-    console.log(
-      `      API Secret: ${twitterApiSecret ? `${twitterApiSecret.substring(0, 10)}...(${twitterApiSecret.length} chars)` : "MISSING"}`
-    );
-    console.log(
-      `      Access Token: ${twitterAccessToken?.substring(0, 15)}...${twitterAccessToken?.substring(twitterAccessToken.length - 4)}`
-    );
-    console.log(
-      `      Access Token length: ${twitterAccessToken?.length} chars`
-    );
-    console.log(
-      `      Access Secret: ${twitterAccessSecret ? `${twitterAccessSecret.substring(0, 10)}...(${twitterAccessSecret.length} chars)` : "MISSING"}`
-    );
+    console.log(`\n   🔍 Credentials Check:`);
+    console.log(`      OAuth 2.0 Client ID: ${twitterClientId ? '✅ Set' : '❌ Missing'}`);
+    console.log(`      OAuth 2.0 Client Secret: ${twitterClientSecret ? '✅ Set' : '❌ Missing'}`);
+    console.log(`      OAuth 2.0 Refresh Token: ${twitterRefreshToken ? '✅ Set' : '❌ Missing'}`);
+    console.log(`      OAuth 1.0a (for media): ${hasOAuth1 ? '✅ Set' : '⚠️  Not set (media upload will fail)'}`);
+
 
     // Generate smart hashtags based on content
     const hashtags = generateSmartHashtags(blogPost);
@@ -730,41 +726,42 @@ async function postToTwitter(blogPost, blogUrl) {
     const tweets = createTweetThread(blogPost, blogUrl, hashtags);
     console.log(`   📝 Created thread with ${tweets.length} tweets`);
 
-    // Set up OAuth 1.0a
-    const { default: OAuth } = await import("oauth-1.0a");
-    const crypto = await import("crypto");
-
-    const oauth = OAuth({
-      consumer: {
-        key: twitterApiKey,
-        secret: twitterApiSecret,
-      },
-      signature_method: "HMAC-SHA1",
-      hash_function(base_string, key) {
-        return crypto
-          .createHmac("sha1", key)
-          .update(base_string)
-          .digest("base64");
-      },
-    });
-
-    const token = {
-      key: twitterAccessToken,
-      secret: twitterAccessSecret,
-    };
-
-    console.log(`\n   🔧 OAuth 1.0a setup complete`);
-
-    // Upload image first (if available)
+    // Upload image first (if available) - requires OAuth 1.0a
     let mediaId = null;
     if (blogPost.image && blogPost.image.startsWith("/blog-images/")) {
-      const imagePath = path.join(__dirname, "../public", blogPost.image);
-      if (fs.existsSync(imagePath)) {
-        mediaId = await uploadImageToTwitter(imagePath, oauth, token);
+      if (hasOAuth1) {
+        const { default: OAuth } = await import("oauth-1.0a");
+        const crypto = await import("crypto");
+
+        const oauth = OAuth({
+          consumer: {
+            key: twitterApiKey,
+            secret: twitterApiSecret,
+          },
+          signature_method: "HMAC-SHA1",
+          hash_function(base_string, key) {
+            return crypto
+              .createHmac("sha1", key)
+              .update(base_string)
+              .digest("base64");
+          },
+        });
+
+        const token = {
+          key: twitterAccessToken,
+          secret: twitterAccessSecret,
+        };
+
+        const imagePath = path.join(__dirname, "../public", blogPost.image);
+        if (fs.existsSync(imagePath)) {
+          mediaId = await uploadImageToTwitter(imagePath, oauth, token);
+        }
+      } else {
+        console.log(`   ⚠️  No OAuth 1.0a credentials - posting without image`);
       }
     }
 
-    // Post tweet thread using v2 API with OAuth 1.0a
+    // Post tweet thread using v2 API with OAuth 2.0
     let previousTweetId = null;
     let postedCount = 0;
 
@@ -780,43 +777,74 @@ async function postToTwitter(blogPost, blogUrl) {
         ...(i === 0 && mediaId && { media: { media_ids: [mediaId] } }),
       };
 
-      // Use v1.1 API which fully supports OAuth 1.0a (v2 has restrictions on Free tier)
-      // Convert v2 format to v1.1 format
-      let statusParams = {
-        status: tweetText,
-        ...(previousTweetId && { in_reply_to_status_id: previousTweetId }),
-        ...(i === 0 && mediaId && { media_ids: mediaId }),
-      };
-
-      const request = {
-        url: "https://api.twitter.com/1.1/statuses/update.json",
-        method: "POST",
-        data: statusParams,
-      };
-
-      const authHeader = oauth.toHeader(oauth.authorize(request, token));
-
       if (i === 0) {
-        console.log(`\n   🔍 Posting Tweet 1 (using v1.1 API)...`);
+        console.log(`\n   🔍 Posting Tweet 1 (v2 API with OAuth 2.0)...`);
         console.log(`      Tweet text length: ${tweetText.length} chars`);
         console.log(`      Has media: ${!!mediaId}`);
       }
 
-      // v1.1 uses form-encoded data, not JSON
-      const formBody = new URLSearchParams(statusParams).toString();
+      // For v2 API, try OAuth 2.0 first, fallback to OAuth 1.0a
+      // Free tier requires OAuth 2.0 for posting
+      const useOAuth2 = process.env.TWITTER_REFRESH_TOKEN;
+      let response;
 
-      const response = await fetch(request.url, {
-        method: "POST",
-        headers: {
-          ...authHeader,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: formBody,
-      });
+      if (useOAuth2) {
+        // Use OAuth 2.0 Bearer token
+        const refreshToken = process.env.TWITTER_REFRESH_TOKEN;
+        const clientId = process.env.TWITTER_CLIENT_ID;
+        const clientSecret = process.env.TWITTER_CLIENT_SECRET;
+
+        if (!clientId || !clientSecret) {
+          console.log(
+            `   ⚠️  OAuth 2.0 credentials incomplete, falling back to OAuth 1.0a`
+          );
+          useOAuth2 = false;
+        } else {
+          // Get fresh access token from refresh token
+          const accessToken = await getOAuth2AccessToken(
+            clientId,
+            clientSecret,
+            refreshToken
+          );
+
+          if (accessToken) {
+            console.log(`   🔑 Using OAuth 2.0 Bearer token for v2 API`);
+            response = await fetch("https://api.twitter.com/2/tweets", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(tweetData),
+            });
+          } else {
+            console.log(
+              `   ⚠️  Failed to get OAuth 2.0 token, falling back to OAuth 1.0a`
+            );
+            useOAuth2 = false;
+          }
+        }
+      }
+
+      // Fallback to OAuth 1.0a if OAuth 2.0 not available (won't work on Free tier)
+      if (!useOAuth2) {
+        console.log(
+          `   ⚠️  OAuth 2.0 not configured - OAuth 1.0a doesn't work with v2 API on Free tier`
+        );
+        console.log(
+          `   Run: node scripts/twitter-oauth2-setup.js to get refresh token`
+        );
+        break;
+      }
+
+      if (!response) {
+        console.log(`   ⚠️  No response received`);
+        break;
+      }
 
       if (response.ok) {
         const data = await response.json();
-        previousTweetId = data.id_str; // v1.1 uses id_str instead of data.id
+        previousTweetId = data.data.id; // v2 uses data.id
         postedCount++;
 
         if (i === 0) {
@@ -879,10 +907,9 @@ async function postToTwitter(blogPost, blogUrl) {
 }
 
 // Get OAuth2 access token using Client Credentials flow
-async function getOAuth2AccessToken(clientId, clientSecret) {
+async function getOAuth2AccessToken(clientId, clientSecret, refreshToken) {
   try {
-    // For automated posting, we use the Client Credentials flow
-    // This gives us an app-only Bearer token
+    // Use refresh token to get a new access token for posting
     const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString(
       "base64"
     );
@@ -893,7 +920,11 @@ async function getOAuth2AccessToken(clientId, clientSecret) {
         Authorization: `Basic ${credentials}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: "grant_type=client_credentials",
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        client_id: clientId,
+      }).toString(),
     });
 
     if (response.ok) {
@@ -901,7 +932,7 @@ async function getOAuth2AccessToken(clientId, clientSecret) {
       return data.access_token;
     } else {
       const error = await response.text();
-      console.log(`   ⚠️  OAuth2 token request failed: ${error}`);
+      console.log(`   ⚠️  OAuth2 token refresh failed: ${error}`);
       return null;
     }
   } catch (error) {
