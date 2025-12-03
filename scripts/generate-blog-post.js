@@ -714,6 +714,24 @@ async function postToTwitter(blogPost, blogUrl) {
 
     console.log(`🐦 Posting to Twitter with OAuth 2.0 + v2 API...`);
 
+    // Try to load refresh token from cache file first
+    const tokenCacheFile = path.join(__dirname, "../.twitter-refresh-token");
+    let actualRefreshToken = twitterRefreshToken;
+
+    if (fs.existsSync(tokenCacheFile)) {
+      const cachedToken = fs.readFileSync(tokenCacheFile, "utf-8").trim();
+      if (cachedToken) {
+        console.log(
+          `   📂 Found cached refresh token (auto-updated from previous run)`
+        );
+        actualRefreshToken = cachedToken;
+      }
+    } else if (twitterRefreshToken) {
+      // First run - save initial refresh token to file
+      fs.writeFileSync(tokenCacheFile, twitterRefreshToken);
+      console.log(`   💾 Saved initial refresh token to cache file`);
+    }
+
     // Debug: Log credentials (safely)
     console.log(`\n   🔍 Credentials Check:`);
     console.log(
@@ -723,7 +741,10 @@ async function postToTwitter(blogPost, blogUrl) {
       `      OAuth 2.0 Client Secret: ${twitterClientSecret ? "✅ Set" : "❌ Missing"}`
     );
     console.log(
-      `      OAuth 2.0 Refresh Token: ${twitterRefreshToken ? "✅ Set" : "❌ Missing"}`
+      `      OAuth 2.0 Refresh Token: ${actualRefreshToken ? "✅ Set" : "❌ Missing"}`
+    );
+    console.log(
+      `      Token source: ${fs.existsSync(tokenCacheFile) ? "📂 Cache (auto-updating)" : "🔑 GitHub Secret (initial)"}`
     );
     console.log(
       `      OAuth 1.0a (for media): ${hasOAuth1 ? "✅ Set" : "⚠️  Not set (media upload will fail)"}`
@@ -801,21 +822,20 @@ async function postToTwitter(blogPost, blogUrl) {
 
       if (useOAuth2) {
         // Use OAuth 2.0 Bearer token
-        const refreshToken = process.env.TWITTER_REFRESH_TOKEN;
-        const clientId = process.env.TWITTER_CLIENT_ID;
-        const clientSecret = process.env.TWITTER_CLIENT_SECRET;
+        const clientId = twitterClientId;
+        const clientSecret = twitterClientSecret;
 
-        if (!clientId || !clientSecret) {
+        if (!clientId || !clientSecret || !actualRefreshToken) {
           console.log(
             `   ⚠️  OAuth 2.0 credentials incomplete, falling back to OAuth 1.0a`
           );
           useOAuth2 = false;
         } else {
-          // Get fresh access token from refresh token
+          // Get fresh access token from refresh token (uses cached token if available)
           const accessToken = await getOAuth2AccessToken(
             clientId,
             clientSecret,
-            refreshToken
+            actualRefreshToken
           );
 
           if (accessToken) {

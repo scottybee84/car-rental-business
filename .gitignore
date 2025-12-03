@@ -19,6 +19,9 @@ dist-ssr
 .env.local
 .env.production
 
+# Twitter OAuth2 refresh token (stored in GitHub Actions cache)
+.twitter-refresh-token
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -27,6 +27,15 @@ jobs:
           node-version: "20"
           cache: "npm"
 
+      - name: Restore Twitter refresh token from cache
+        id: cache-twitter-token
+        uses: actions/cache/restore@v4
+        with:
+          path: .twitter-refresh-token
+          key: twitter-oauth2-token-${{ github.run_id }}
+          restore-keys: |
+            twitter-oauth2-token-
+
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
@@ -56,6 +65,13 @@ jobs:
             echo "📝 Blog posts in file:"
             cat src/data/blogPosts.json | jq -r '.[0] | "Title: \(.title)\nSlug: \(.slug)\nURL: https://voltvoyages.io/blog-posts/\(.slug)"' || echo "Could not parse blog posts"
           fi
+
+      - name: Save Twitter refresh token to cache
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .twitter-refresh-token
+          key: twitter-oauth2-token-${{ github.run_id }}
 
       - name: Regenerate sitemap
         run: npm run generate-sitemap
