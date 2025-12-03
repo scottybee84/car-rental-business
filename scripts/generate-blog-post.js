@@ -677,7 +677,282 @@ async function notifyGoogleIndexing(blogUrl) {
   }
 }
 
-// 2. Buffer API - Share to social media
+// 2. Twitter API - Auto-post with smart hashtags and threading
+async function postToTwitter(blogPost, blogUrl) {
+  try {
+    const twitterBearerToken = process.env.TWITTER_BEARER_TOKEN;
+    const twitterApiKey = process.env.TWITTER_API_KEY;
+    const twitterApiSecret = process.env.TWITTER_API_SECRET;
+    const twitterAccessToken = process.env.TWITTER_ACCESS_TOKEN;
+    const twitterAccessSecret = process.env.TWITTER_ACCESS_SECRET;
+
+    if (!twitterBearerToken || !twitterApiKey || !twitterAccessToken) {
+      console.log(
+        `   ⚠️  Twitter credentials not set - skipping Twitter posting`
+      );
+      return false;
+    }
+
+    console.log(`🐦 Posting to Twitter with thread + image...`);
+
+    // Generate smart hashtags based on content
+    const hashtags = generateSmartHashtags(blogPost);
+    console.log(`   📌 Hashtags: ${hashtags.join(" ")}`);
+
+    // Create tweet thread (multiple tweets for better engagement)
+    const tweets = createTweetThread(blogPost, blogUrl, hashtags);
+    console.log(`   📝 Created thread with ${tweets.length} tweets`);
+
+    // Post tweet thread using Twitter API v2
+    // We'll use OAuth 1.0a for posting (required by Twitter)
+    const { default: OAuth } = await import("oauth-1.0a");
+    const crypto = await import("crypto");
+
+    const oauth = OAuth({
+      consumer: {
+        key: twitterApiKey,
+        secret: twitterApiSecret,
+      },
+      signature_method: "HMAC-SHA1",
+      hash_function(base_string, key) {
+        return crypto
+          .createHmac("sha1", key)
+          .update(base_string)
+          .digest("base64");
+      },
+    });
+
+    const token = {
+      key: twitterAccessToken,
+      secret: twitterAccessSecret,
+    };
+
+    // Upload image first (if available)
+    let mediaId = null;
+    if (blogPost.image && blogPost.image.startsWith("/blog-images/")) {
+      // Image is local, upload it
+      const imagePath = path.join(__dirname, "../public", blogPost.image);
+      if (fs.existsSync(imagePath)) {
+        mediaId = await uploadImageToTwitter(imagePath, oauth, token);
+      }
+    }
+
+    // Post tweet thread
+    let previousTweetId = null;
+    let postedCount = 0;
+
+    for (let i = 0; i < tweets.length; i++) {
+      const tweetText = tweets[i];
+
+      const tweetData = {
+        text: tweetText,
+        ...(previousTweetId && {
+          reply: { in_reply_to_tweet_id: previousTweetId },
+        }),
+        ...(i === 0 && mediaId && { media: { media_ids: [mediaId] } }),
+      };
+
+      const request = {
+        url: "https://api.twitter.com/2/tweets",
+        method: "POST",
+        data: tweetData,
+      };
+
+      const authHeader = oauth.toHeader(oauth.authorize(request, token));
+
+      const response = await fetch(request.url, {
+        method: "POST",
+        headers: {
+          ...authHeader,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(tweetData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        previousTweetId = data.data.id;
+        postedCount++;
+
+        // Wait 2 seconds between tweets to avoid rate limits
+        if (i < tweets.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+      } else {
+        const error = await response.text();
+        console.log(`   ⚠️  Tweet ${i + 1} failed: ${error}`);
+        break;
+      }
+    }
+
+    if (postedCount > 0) {
+      console.log(`   ✅ Posted ${postedCount}-tweet thread to Twitter`);
+      return true;
+    } else {
+      console.log(`   ⚠️  Twitter posting failed`);
+      return false;
+    }
+  } catch (error) {
+    console.log(`   ⚠️  Twitter API error: ${error.message}`);
+    return false;
+  }
+}
+
+// Upload image to Twitter
+async function uploadImageToTwitter(imagePath, oauth, token) {
+  try {
+    const imageBuffer = fs.readFileSync(imagePath);
+    const base64Image = imageBuffer.toString("base64");
+
+    const request = {
+      url: "https://upload.twitter.com/1.1/media/upload.json",
+      method: "POST",
+      data: {
+        media_data: base64Image,
+      },
+    };
+
+    const authHeader = oauth.toHeader(oauth.authorize(request, token));
+
+    const response = await fetch(request.url, {
+      method: "POST",
+      headers: {
+        ...authHeader,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `media_data=${encodeURIComponent(base64Image)}`,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log(`   ✅ Image uploaded to Twitter`);
+      return data.media_id_string;
+    }
+    return null;
+  } catch (error) {
+    console.log(`   ⚠️  Image upload failed: ${error.message}`);
+    return null;
+  }
+}
+
+// Generate smart hashtags based on blog content
+function generateSmartHashtags(blogPost) {
+  const hashtags = new Set();
+
+  // Always include core hashtags
+  hashtags.add("#Tesla");
+  hashtags.add("#ElectricVehicles");
+
+  // Add based on keywords
+  const keywords = blogPost.keywords || [];
+
+  if (
+    keywords.some(
+      (k) =>
+        k.toLowerCase().includes("supercharger") ||
+        k.toLowerCase().includes("charging")
+    )
+  ) {
+    hashtags.add("#TeslaCharging");
+  }
+
+  if (
+    keywords.some(
+      (k) =>
+        k.toLowerCase().includes("germany") ||
+        k.toLowerCase().includes("europe")
+    )
+  ) {
+    hashtags.add("#GermanyTravel");
+  }
+
+  if (keywords.some((k) => k.toLowerCase().includes("model y"))) {
+    hashtags.add("#TeslaModelY");
+  }
+
+  if (
+    keywords.some(
+      (k) =>
+        k.toLowerCase().includes("road trip") ||
+        k.toLowerCase().includes("travel")
+    )
+  ) {
+    hashtags.add("#RoadTrip");
+  }
+
+  // Add news-specific hashtags
+  if (blogPost.category === "News") {
+    hashtags.add("#TeslaNews");
+  }
+
+  // Limit to 4 hashtags (Twitter best practice)
+  return Array.from(hashtags).slice(0, 4);
+}
+
+// Create engaging tweet thread from blog post
+function createTweetThread(blogPost, blogUrl, hashtags) {
+  const tweets = [];
+
+  // Tweet 1: Hook with image (main tweet)
+  const emoji = "🚗";
+  const mainTweet = `${emoji} ${blogPost.title}
+
+${blogPost.excerpt.substring(0, 160)}...
+
+👇 Thread 👇`;
+
+  tweets.push(mainTweet);
+
+  // Tweet 2: Key insight or stat
+  const tweet2 = `Here's why this matters:
+
+${extractKeyPoint(blogPost.content, 1)}
+
+Perfect timing for anyone planning a Germany trip 🇩🇪`;
+
+  tweets.push(tweet2);
+
+  // Tweet 3: Another insight
+  const tweet3 = extractKeyPoint(blogPost.content, 2);
+  tweets.push(tweet3);
+
+  // Tweet 4: Call-to-action with link and hashtags
+  const tweet4 = `Full article with all the details:
+${blogUrl}
+
+Planning a Tesla road trip in Germany? We've got you covered ⚡
+
+${hashtags.join(" ")}`;
+
+  tweets.push(tweet4);
+
+  return tweets;
+}
+
+// Extract key points from blog content for threading
+function extractKeyPoint(content, pointNumber) {
+  // Remove HTML tags
+  const text = content
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // Split into sentences
+  const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 20);
+
+  // Get a compelling sentence from the middle
+  const index = Math.min(pointNumber * 3, sentences.length - 1);
+  let point = sentences[index]?.trim();
+
+  // Ensure it's not too long for a tweet (under 280 chars)
+  if (point && point.length > 260) {
+    point = point.substring(0, 257) + "...";
+  }
+
+  return point || "Tesla rentals in Germany just got even better!";
+}
+
+// 3. Buffer API - Share to social media (DEPRECATED - keeping for backwards compatibility)
 async function shareToBuffer(blogPost, blogUrl) {
   try {
     const bufferToken = process.env.BUFFER_ACCESS_TOKEN;
@@ -793,27 +1068,23 @@ async function promoteContent(blogPost) {
 
   const results = {
     google: false,
-    buffer: false,
-    medium: false,
+    twitter: false,
   };
 
   // Run all promotions in parallel for speed
-  const [googleResult, bufferResult, mediumResult] = await Promise.all([
+  const [googleResult, twitterResult] = await Promise.all([
     notifyGoogleIndexing(blogUrl),
-    shareToBuffer(blogPost, blogUrl),
-    publishToMedium(blogPost, blogUrl),
+    postToTwitter(blogPost, blogUrl),
   ]);
 
   results.google = googleResult;
-  results.buffer = bufferResult;
-  results.medium = mediumResult;
+  results.twitter = twitterResult;
 
   // Summary
   const successCount = Object.values(results).filter((r) => r).length;
-  console.log(`\n📊 Promotion summary: ${successCount}/3 channels successful`);
+  console.log(`\n📊 Promotion summary: ${successCount}/2 channels successful`);
   if (results.google) console.log(`   ✅ Google Indexing`);
-  if (results.buffer) console.log(`   ✅ Social Media (Buffer)`);
-  if (results.medium) console.log(`   ✅ Medium Syndication`);
+  if (results.twitter) console.log(`   ✅ Twitter (thread posted with image)`);
 
   if (successCount === 0) {
     console.log(
