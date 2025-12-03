@@ -673,6 +673,12 @@ async function prerenderRoutes() {
       cacheIndex = JSON.parse(readFileSync(cacheIndexPath, "utf-8"));
       const cacheEntryCount = Object.keys(cacheIndex).length;
       console.log(`📦 Cache index loaded: ${cacheEntryCount} entries found`);
+
+      // Debug: show which slugs are in the cache
+      if (cacheEntryCount > 0) {
+        const cachedSlugs = Object.keys(cacheIndex).join(", ");
+        console.log(`   Cached slugs: ${cachedSlugs}`);
+      }
     } catch (e) {
       console.log(
         `⚠️  Cache index exists but couldn't be parsed: ${e.message}`
@@ -691,6 +697,10 @@ async function prerenderRoutes() {
 
       if (Array.isArray(blogPosts) && blogPosts.length > 0) {
         console.log(`\n📝 Processing ${blogPosts.length} blog posts...`);
+
+        // Debug: show which posts we're trying to process
+        const currentSlugs = blogPosts.map((p) => p.slug).join(", ");
+        console.log(`   Current post slugs: ${currentSlugs}`);
 
         let prerenderedPosts = 0;
         let cachedPosts = 0;
