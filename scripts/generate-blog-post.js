@@ -780,55 +780,43 @@ async function postToTwitter(blogPost, blogUrl) {
         ...(i === 0 && mediaId && { media: { media_ids: [mediaId] } }),
       };
 
-      // For v2 API with JSON body, don't include data in OAuth signature
-      // OAuth 1.0a only signs query params and form data, NOT JSON bodies
+      // Use v1.1 API which fully supports OAuth 1.0a (v2 has restrictions on Free tier)
+      // Convert v2 format to v1.1 format
+      let statusParams = {
+        status: tweetText,
+        ...(previousTweetId && { in_reply_to_status_id: previousTweetId }),
+        ...(i === 0 && mediaId && { media_ids: mediaId }),
+      };
+
       const request = {
-        url: "https://api.twitter.com/2/tweets",
+        url: "https://api.twitter.com/1.1/statuses/update.json",
         method: "POST",
-        // Intentionally NOT including 'data' - it shouldn't be part of OAuth signature
+        data: statusParams,
       };
 
       const authHeader = oauth.toHeader(oauth.authorize(request, token));
 
       if (i === 0) {
-        console.log(`\n   🔍 DEBUG - Posting Tweet 1...`);
+        console.log(`\n   🔍 Posting Tweet 1 (using v1.1 API)...`);
         console.log(`      Tweet text length: ${tweetText.length} chars`);
         console.log(`      Has media: ${!!mediaId}`);
-        console.log(`\n   📤 Request Details:`);
-        console.log(`      URL: ${request.url}`);
-        console.log(`      Method: ${request.method}`);
-        console.log(
-          `      Body: ${JSON.stringify(tweetData, null, 2).substring(0, 200)}...`
-        );
-        console.log(`\n   🔐 Authorization Header:`);
-        console.log(`      ${JSON.stringify(authHeader, null, 2)}`);
-        console.log(`\n   🔑 OAuth Signature Base String Components:`);
-        const authData = oauth.authorize(request, token);
-        console.log(`      oauth_consumer_key: ${authData.oauth_consumer_key}`);
-        console.log(`      oauth_token: ${authData.oauth_token}`);
-        console.log(
-          `      oauth_signature_method: ${authData.oauth_signature_method}`
-        );
-        console.log(`      oauth_timestamp: ${authData.oauth_timestamp}`);
-        console.log(`      oauth_nonce: ${authData.oauth_nonce}`);
-        console.log(`      oauth_version: ${authData.oauth_version}`);
-        console.log(
-          `      oauth_signature: ${authData.oauth_signature?.substring(0, 20)}...`
-        );
       }
+
+      // v1.1 uses form-encoded data, not JSON
+      const formBody = new URLSearchParams(statusParams).toString();
 
       const response = await fetch(request.url, {
         method: "POST",
         headers: {
           ...authHeader,
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: JSON.stringify(tweetData),
+        body: formBody,
       });
 
       if (response.ok) {
         const data = await response.json();
-        previousTweetId = data.data.id;
+        previousTweetId = data.id_str; // v1.1 uses id_str instead of data.id
         postedCount++;
 
         if (i === 0) {
