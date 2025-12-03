@@ -1,4 +1,4 @@
-# Twitter API Integration Setup
+# Twitter API Integration Setup (OAuth2)
 
 ## Overview
 
@@ -7,6 +7,16 @@ Every blog post automatically creates a **4-tweet thread** on Twitter with:
 - 🎯 Smart hashtags based on content
 - 🧵 Engaging thread format
 - 🔗 Link to full article
+
+## OAuth2 vs OAuth 1.0a
+
+This guide uses **OAuth2** (modern, simpler authentication):
+- ✅ Easier setup - just need Client ID and Client Secret
+- ✅ More secure with automatic token refresh
+- ✅ Modern standard used by most APIs
+- ✅ No complex signature generation
+
+**Note**: Media upload still requires OAuth 1.0a credentials, so we keep both for full functionality.
 
 ## Features
 
@@ -55,7 +65,7 @@ Planning a Tesla road trip in Germany? We've got you covered ⚡
 
 ---
 
-## Setup Instructions
+## Setup Instructions (OAuth2)
 
 ### Step 1: Get Twitter API Access
 
@@ -71,50 +81,76 @@ Planning a Tesla road trip in Germany? We've got you covered ⚡
 1. Go to https://developer.twitter.com/en/portal/dashboard
 2. Click **Projects & Apps** → **+ Create App**
 3. **App name**: "VoltVoyage Blog Automation"
-4. Save your credentials:
+
+### Step 3: Enable OAuth2 and Get Credentials
+
+1. In your app dashboard, click on **⚙️ Settings**
+2. Scroll to **User authentication settings**
+3. Click **Set up** (or **Edit** if already set up)
+4. Configure OAuth 2.0:
+   - **App permissions**: Select **Read and write** (required for posting)
+   - **Type of App**: Choose **Web App, Automated App or Bot**
+   - **App info**:
+     - **Callback URI / Redirect URL**: `https://voltvoyages.io/callback` (or your domain)
+     - **Website URL**: `https://voltvoyages.io`
+5. Click **Save**
+
+### Step 4: Get OAuth 2.0 Client Credentials
+
+1. After saving, you'll see your **OAuth 2.0 Client ID** and **Client Secret**
+2. **IMPORTANT**: Copy the **Client Secret** immediately - you can't see it again!
+3. If you lose it, you'll need to regenerate it
+
+### Step 5: Get OAuth 1.0a Credentials (for Media Upload)
+
+Twitter still requires OAuth 1.0a for media uploads, so we need both:
+
+1. Go to **Keys and tokens** tab
+2. You should see:
    - **API Key** (Consumer Key)
    - **API Secret** (Consumer Secret)
-   - **Bearer Token**
-
-### Step 3: Generate Access Tokens
-
-1. In your app dashboard, go to **Keys and tokens**
-2. Under **Authentication Tokens**:
-   - Click **Generate** for Access Token & Secret
-3. Save:
+3. Under **Authentication Tokens**, click **Generate** for:
    - **Access Token**
    - **Access Token Secret**
+4. Save all these credentials
 
-### Step 4: Set App Permissions
-
-1. In app settings, go to **User authentication settings**
-2. Click **Set up**
-3. **App permissions**: Select **Read and Write** (required for posting)
-4. **Type of App**: Choose **Web App, Automated App or Bot**
-5. **Callback URL**: `https://voltvoyages.io` (any valid URL)
-6. **Website URL**: `https://voltvoyages.io`
-7. Save
-
-### Step 5: Add to GitHub Secrets
+### Step 6: Add to GitHub Secrets
 
 Go to GitHub → **Settings** → **Secrets and variables** → **Actions**
 
-Add **5 secrets**:
+Add **6 secrets** (OAuth2 + OAuth1.0a for media):
 
-1. **TWITTER_API_KEY**
+#### OAuth 2.0 (Primary - for posting tweets):
+
+1. **TWITTER_CLIENT_ID**
+   - Value: Your OAuth 2.0 Client ID
+
+2. **TWITTER_CLIENT_SECRET**
+   - Value: Your OAuth 2.0 Client Secret
+
+#### OAuth 1.0a (for media upload):
+
+3. **TWITTER_API_KEY**
    - Value: Your API Key (Consumer Key)
 
-2. **TWITTER_API_SECRET**
+4. **TWITTER_API_SECRET**
    - Value: Your API Secret (Consumer Secret)
 
-3. **TWITTER_ACCESS_TOKEN**
+5. **TWITTER_ACCESS_TOKEN**
    - Value: Your Access Token
 
-4. **TWITTER_ACCESS_SECRET**
+6. **TWITTER_ACCESS_SECRET**
    - Value: Your Access Token Secret
 
-5. **TWITTER_BEARER_TOKEN**
-   - Value: Your Bearer Token
+### Step 7: Initial OAuth2 Token Setup
+
+Since this is automated posting, you need to generate a refresh token once:
+
+1. **Important**: The automation uses a **refresh token** to get new access tokens automatically
+2. When you first set up OAuth2, you'll need to authorize the app once
+3. The script will handle token refresh automatically after that
+
+**The script will guide you through this on first run** - just have your Client ID and Client Secret ready.
 
 ---
 
@@ -131,15 +167,15 @@ When a blog post is generated:
 📍 Submitting to Google Indexing API...
    ✅ Google notified - page will be indexed soon
 
-🐦 Posting to Twitter with thread + image...
+🐦 Posting to Twitter with OAuth2...
    📌 Hashtags: #Tesla #GermanyTravel #ElectricVehicles #TeslaNews
    📝 Created thread with 4 tweets
-   ✅ Image uploaded to Twitter
-   ✅ Posted 4-tweet thread to Twitter
+   ✅ Image uploaded to Twitter (OAuth 1.0a)
+   ✅ Posted 4-tweet thread to Twitter (OAuth 2.0)
 
 📊 Promotion summary: 2/2 channels successful
    ✅ Google Indexing
-   ✅ Twitter (thread posted with image)
+   ✅ Twitter (thread posted with image via OAuth2)
 ```
 
 ---
@@ -276,19 +312,32 @@ Monitor in Twitter Analytics:
 ## Troubleshooting
 
 ### "Twitter credentials not set"
-- Verify all 5 secrets are added to GitHub
+- Verify all 6 secrets are added to GitHub (Client ID, Client Secret, plus OAuth 1.0a credentials)
 - Check for typos in secret names
-- Ensure Twitter app has Read + Write permissions
+- Ensure Twitter app has Read + Write permissions in OAuth 2.0 settings
+
+### "OAuth2 authentication failed"
+- Verify Client ID and Client Secret are correct
+- Check that OAuth 2.0 is enabled in app settings
+- Ensure app has "Read and write" permissions
+- Try regenerating the Client Secret
 
 ### "Tweet posting failed"
 - Check app permissions (must be Read + Write)
-- Verify access tokens are for the correct app
-- Check rate limits (60 posts/hour max)
+- Verify the refresh token is valid
+- Check rate limits (50 tweets/day on Free tier, 100 on Basic)
+- OAuth2 tokens expire - the script should auto-refresh
 
 ### "Image upload failed"
 - Image might be too large (>5MB)
-- Try without image first
-- Check file exists in public/blog-images/
+- Media upload requires OAuth 1.0a credentials
+- Check that OAuth 1.0a credentials are set correctly
+- Verify file exists in public/blog-images/
+
+### "Token refresh failed"
+- Refresh tokens can expire if not used for 6 months
+- Re-authorize the app by getting a new refresh token
+- Check that TWITTER_CLIENT_ID and TWITTER_CLIENT_SECRET are correct
 
 ---
 
