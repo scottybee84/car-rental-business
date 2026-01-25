@@ -248,195 +248,331 @@ async function parseGoogleNewsRSS(rssXml) {
   }
 }
 
-// Generate diverse news queries based on date/time to get different articles
-function getDiverseNewsQuery() {
-  const now = new Date();
-  const dayOfYear = Math.floor(
-    (now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24
-  );
-  const hour = now.getHours();
-  
-  // Rotate through different query variations to get diverse results
-  const queryVariations = [
-    'Tesla Model Y OR "Tesla Model 3" OR "Tesla Cybertruck"',
-    '"Tesla Supercharger" OR "EV charging network" OR "electric vehicle infrastructure"',
-    '"Elon Musk" OR "Tesla stock" OR "TSLA"',
-    '"electric vehicles" OR "EV adoption" OR "battery technology"',
-    '"Tesla Autopilot" OR "Full Self Driving" OR "FSD"',
-    '"Tesla production" OR "Gigafactory" OR "Tesla manufacturing"',
-    '"Tesla delivery" OR "Tesla sales" OR "EV market share"',
-    '"Tesla software" OR "Tesla update" OR "over-the-air update"',
-    '"Tesla energy" OR "Powerwall" OR "solar roof"',
-    '"Tesla service" OR "Tesla maintenance" OR "EV repair"',
-    '"Tesla range" OR "battery range" OR "EV efficiency"',
-    '"Tesla design" OR "Tesla interior" OR "Tesla features"',
-    '"Tesla price" OR "Tesla cost" OR "EV affordability"',
-    '"Tesla safety" OR "Tesla crash test" OR "EV safety"',
-    '"Tesla charging" OR "fast charging" OR "DC fast charge"',
-  ];
-  
-  // Use day of year and hour to select different queries
-  const queryIndex = (dayOfYear * 2 + Math.floor(hour / 12)) % queryVariations.length;
-  return queryVariations[queryIndex];
+// Use AI to generate smart, diverse search queries based on current date and trends
+async function generateAISearchQueries(apiKey) {
+  try {
+    const OpenAI = (await import("openai")).default;
+    const openai = new OpenAI({ apiKey });
+    
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
+    const prompt = `Today is ${dateStr}. Generate 5 diverse, specific Google News search queries about Tesla, electric vehicles, or Elon Musk that would find the MOST RECENT and INTERESTING news articles from the last 7 days.
+
+Requirements:
+- Each query should be different and target different aspects (technology, business, infrastructure, features, market, etc.)
+- Make queries specific enough to find unique articles (not generic "Tesla news")
+- Focus on recent developments, announcements, or trends
+- Include variations like: specific models, features, locations, partnerships, technology, market news
+- Return ONLY a JSON array of 5 query strings, nothing else
+
+Example format:
+["Tesla Model Y 2026 updates new features", "Tesla Supercharger network expansion Europe January 2026", "Elon Musk Tesla earnings Q1 2026", "Tesla battery technology breakthrough 2026", "Tesla autonomous driving regulations Germany 2026"]
+
+Generate 5 unique queries for today:`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a news research assistant. Generate specific, diverse Google News search queries that will find recent, interesting articles. Always return valid JSON arrays.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.9,
+      max_tokens: 500,
+    });
+
+    const response = JSON.parse(completion.choices[0].message.content);
+    
+    // Handle different response formats
+    let queries = [];
+    if (Array.isArray(response)) {
+      queries = response;
+    } else if (response.queries && Array.isArray(response.queries)) {
+      queries = response.queries;
+    } else if (response.query && Array.isArray(response.query)) {
+      queries = response.query;
+    } else {
+      // Try to extract queries from any array property
+      const arrayProps = Object.values(response).filter(Array.isArray);
+      if (arrayProps.length > 0) {
+        queries = arrayProps[0];
+      }
+    }
+    
+    // Fallback if AI didn't return proper format
+    if (!queries || queries.length === 0) {
+      console.log("   ⚠️  AI query generation failed, using fallback queries");
+      queries = [
+        `Tesla ${now.getFullYear()} news`,
+        `Tesla Model Y ${now.toLocaleDateString('en-US', { month: 'long' })} ${now.getFullYear()}`,
+        `Elon Musk Tesla ${now.getFullYear()}`,
+        `Electric vehicle news ${now.getFullYear()}`,
+        `Tesla Supercharger ${now.getFullYear()}`,
+      ];
+    }
+    
+    return queries.slice(0, 5); // Ensure max 5 queries
+  } catch (error) {
+    console.log(`   ⚠️  AI query generation error: ${error.message}`);
+    // Fallback to date-based queries
+    const now = new Date();
+    return [
+      `Tesla ${now.getFullYear()} news`,
+      `Tesla Model Y ${now.toLocaleDateString('en-US', { month: 'long' })} ${now.getFullYear()}`,
+      `Elon Musk Tesla ${now.getFullYear()}`,
+      `Electric vehicle news ${now.getFullYear()}`,
+      `Tesla Supercharger ${now.getFullYear()}`,
+    ];
+  }
 }
 
-// Fetch recent Tesla/Elon Musk news from multiple sources
-async function fetchRecentTeslaNews() {
+// Use AI to analyze and select the best news articles from search results
+async function analyzeAndSelectNewsArticles(articles, apiKey, existingBlogPosts) {
+  try {
+    if (!articles || articles.length === 0) {
+      return [];
+    }
+
+    const OpenAI = (await import("openai")).default;
+    const openai = new OpenAI({ apiKey });
+
+    // Prepare article summaries for AI analysis
+    const articleSummaries = articles.slice(0, 30).map((article, index) => ({
+      index,
+      title: article.title || '',
+      description: article.description || article.content || '',
+      url: article.url || '',
+      publishedAt: article.publishedAt || new Date().toISOString(),
+    }));
+
+    // Get existing post titles for duplicate checking
+    const existingTitles = existingBlogPosts
+      .slice(0, 50)
+      .map(post => post.title.toLowerCase())
+      .join('\n');
+
+    const prompt = `Analyze these ${articleSummaries.length} recent Tesla/electric vehicle news articles and select the 3-5 MOST INTERESTING, RECENT, and UNIQUE articles that would make great blog post topics.
+
+EXISTING BLOG POST TITLES (avoid similar topics):
+${existingTitles || 'None'}
+
+ARTICLES TO ANALYZE:
+${articleSummaries.map(a => `${a.index}. "${a.title}"\n   ${a.description.substring(0, 200)}...\n   Published: ${a.publishedAt}\n`).join('\n')}
+
+CRITERIA:
+1. Must be from the last 7 days (most recent first)
+2. Must be INTERESTING and NEWSWORTHY (not generic announcements)
+3. Must be UNIQUE (not similar to existing blog posts)
+4. Should cover different aspects (technology, business, infrastructure, features, etc.)
+5. Should be relevant to Tesla rentals in Germany (or can be connected to it)
+
+Return a JSON object with:
+{
+  "selected": [array of article indices (0-based)],
+  "reasoning": "brief explanation of why these were selected"
+}
+
+Return ONLY the JSON, nothing else.`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a news curator. Analyze articles and select the most interesting, recent, and unique ones. Always return valid JSON.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+      max_tokens: 1000,
+    });
+
+    const response = JSON.parse(completion.choices[0].message.content);
+    
+    let selectedIndices = [];
+    if (response.selected && Array.isArray(response.selected)) {
+      selectedIndices = response.selected.map(i => parseInt(i)).filter(i => !isNaN(i) && i >= 0 && i < articles.length);
+    }
+
+    if (selectedIndices.length === 0) {
+      // Fallback: just take the first few recent articles
+      console.log("   ⚠️  AI selection failed, using first recent articles");
+      selectedIndices = [0, 1, 2].filter(i => i < articles.length);
+    }
+
+    const selectedArticles = selectedIndices.map(i => articles[i]).filter(Boolean);
+    
+    if (response.reasoning) {
+      console.log(`   🤖 AI reasoning: ${response.reasoning.substring(0, 150)}...`);
+    }
+    
+    return selectedArticles;
+  } catch (error) {
+    console.log(`   ⚠️  AI article analysis error: ${error.message}`);
+    // Fallback: return first 3 articles
+    return articles.slice(0, 3);
+  }
+}
+
+// Fetch recent Tesla/Elon Musk news using AI-powered search
+async function fetchRecentTeslaNews(apiKey, existingBlogPosts = []) {
   try {
     const now = new Date();
-    const dayOfYear = Math.floor(
-      (now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24
-    );
+    console.log("🤖 Using AI to generate smart search queries...");
     
-    // Try NewsAPI first (if API key exists)
-    const newsApiKey = process.env.NEWS_API_KEY;
-    let articles = [];
+    // Step 1: Use AI to generate diverse, specific search queries
+    const searchQueries = await generateAISearchQueries(apiKey);
+    console.log(`   ✅ Generated ${searchQueries.length} AI-powered search queries`);
+    searchQueries.forEach((q, i) => console.log(`      ${i + 1}. "${q}"`));
 
-    if (newsApiKey) {
-      console.log("   Trying NewsAPI...");
-      
-      // Use diverse query and add date range to get fresh articles
-      const query = getDiverseNewsQuery();
-      const fromDate = new Date(now);
-      fromDate.setDate(fromDate.getDate() - 7); // Last 7 days
-      const fromDateStr = fromDate.toISOString().split('T')[0];
-      
-      const encodedQuery = encodeURIComponent(query);
-      const url = `https://newsapi.org/v2/everything?q=${encodedQuery}&language=en&sortBy=publishedAt&from=${fromDateStr}&pageSize=20&apiKey=${newsApiKey}`;
-      
-      console.log(`   Query: ${query}`);
-      console.log(`   Date range: Last 7 days`);
+    // Step 2: Search Google News RSS with all queries (parallel)
+    console.log("\n📰 Searching Google News with AI-generated queries...");
+    const allArticles = [];
+    const searchPromises = searchQueries.map(async (query) => {
+      const encodedQuery = encodeURIComponent(query.replace(/"/g, ''));
+      const googleNewsUrl = `https://news.google.com/rss/search?q=${encodedQuery}&hl=en&gl=US&ceid=US:en&num=10&when=7d`;
 
-      articles = await new Promise((resolve) => {
+      return new Promise((resolve) => {
         https
-          .get(url, (res) => {
+          .get(googleNewsUrl, (res) => {
             let data = "";
             res.on("data", (chunk) => {
               data += chunk;
             });
-            res.on("end", () => {
+            res.on("end", async () => {
               try {
-                const parsed = JSON.parse(data);
-                if (parsed.articles && parsed.articles.length > 0) {
-                  // Shuffle articles to get variety, then take first 10
-                  const shuffled = parsed.articles.sort(() => Math.random() - 0.5);
-                  resolve(shuffled.slice(0, 10));
-                } else {
-                  resolve([]);
-                }
+                const parsed = await parseGoogleNewsRSS(data);
+                resolve(parsed || []);
               } catch (e) {
-                console.log(`   ⚠️  NewsAPI parse error: ${e.message}`);
+                console.log(`   ⚠️  Error parsing RSS for "${query}": ${e.message}`);
                 resolve([]);
               }
             });
           })
           .on("error", (err) => {
-            console.log(`   ⚠️  NewsAPI request error: ${err.message}`);
+            console.log(`   ⚠️  Error fetching "${query}": ${err.message}`);
             resolve([]);
           });
       });
+    });
 
-      if (articles.length > 0) {
-        console.log(`   ✅ NewsAPI returned ${articles.length} articles`);
-        return articles;
+    const searchResults = await Promise.all(searchPromises);
+    
+    // Combine and deduplicate articles
+    const articleMap = new Map();
+    searchResults.flat().forEach(article => {
+      if (article.title && article.url) {
+        // Use URL as key for deduplication
+        const key = article.url.toLowerCase();
+        if (!articleMap.has(key)) {
+          articleMap.set(key, article);
+        }
+      }
+    });
+
+    const uniqueArticles = Array.from(articleMap.values());
+    console.log(`   ✅ Found ${uniqueArticles.length} unique articles from searches`);
+
+    if (uniqueArticles.length === 0) {
+      // Try NewsAPI as fallback if available
+      const newsApiKey = process.env.NEWS_API_KEY;
+      if (newsApiKey) {
+        console.log("   Trying NewsAPI as fallback...");
+        const fromDate = new Date(now);
+        fromDate.setDate(fromDate.getDate() - 7);
+        const fromDateStr = fromDate.toISOString().split('T')[0];
+        const query = searchQueries[0] || 'Tesla';
+        const encodedQuery = encodeURIComponent(query);
+        const url = `https://newsapi.org/v2/everything?q=${encodedQuery}&language=en&sortBy=publishedAt&from=${fromDateStr}&pageSize=20&apiKey=${newsApiKey}`;
+
+        const newsApiArticles = await new Promise((resolve) => {
+          https
+            .get(url, (res) => {
+              let data = "";
+              res.on("data", (chunk) => { data += chunk; });
+              res.on("end", () => {
+                try {
+                  const parsed = JSON.parse(data);
+                  resolve(parsed.articles || []);
+                } catch (e) {
+                  resolve([]);
+                }
+              });
+            })
+            .on("error", () => resolve([]));
+        });
+
+        if (newsApiArticles.length > 0) {
+          console.log(`   ✅ NewsAPI returned ${newsApiArticles.length} articles`);
+          uniqueArticles.push(...newsApiArticles);
+        }
       }
     }
 
-    // Fallback 1: Google News RSS (FREE - no API key needed!)
-    console.log("   Trying Google News RSS...");
-    
-    // Use diverse query for Google News too
-    const googleQuery = getDiverseNewsQuery().replace(/"/g, '').replace(/\s+/g, '+');
-    const googleNewsUrl =
-      `https://news.google.com/rss/search?q=${googleQuery}&hl=en&gl=US&ceid=US:en&num=20&when=7d`;
-
-    console.log(`   Query: ${getDiverseNewsQuery()}`);
-    console.log(`   Time range: Last 7 days`);
-
-    articles = await new Promise((resolve) => {
-      https
-        .get(googleNewsUrl, (res) => {
-          let data = "";
-          res.on("data", (chunk) => {
-            data += chunk;
-          });
-          res.on("end", async () => {
-            const parsed = await parseGoogleNewsRSS(data);
-            // Shuffle for variety
-            const shuffled = parsed.sort(() => Math.random() - 0.5);
-            resolve(shuffled);
-          });
-        })
-        .on("error", (err) => {
-          console.log(`   ⚠️  Google News RSS error: ${err.message}`);
-          resolve([]);
-        });
-    });
-
-    if (articles.length > 0) {
-      console.log(`   ✅ Google News RSS returned ${articles.length} articles`);
-      return articles.slice(0, 10);
+    if (uniqueArticles.length === 0) {
+      throw new Error("No articles found from any source");
     }
 
-    // Fallback 2: Date-based static topics (last resort)
-    console.log("   Using date-based Tesla topics as last resort");
-    
-    // Create date-based variations of topics
-    const staticTopics = [
-      {
-        title: `Tesla Supercharger Network Expansion Accelerates Across Europe in ${now.getFullYear()}`,
-        description:
-          `Tesla's commitment to expanding its Supercharger network makes EV travel more accessible across Europe, particularly in Germany where infrastructure growth is accelerating in ${now.getFullYear()}.`,
-        url: "https://www.tesla.com/",
-        publishedAt: now.toISOString(),
-      },
-      {
-        title: `Electric Vehicle Adoption Reaches New Heights in Germany This ${now.toLocaleString('en-US', { month: 'long' })}`,
-        description:
-          `Germany sees unprecedented growth in electric vehicle adoption, with Tesla leading the charge as American travelers increasingly choose EVs for their European adventures in ${now.getFullYear()}.`,
-        url: "https://www.tesla.com/",
-        publishedAt: now.toISOString(),
-      },
-      {
-        title: `Tesla Model Y Continues to Lead European EV Market in ${now.getFullYear()}`,
-        description:
-          `The Tesla Model Y remains the top choice for travelers and residents alike, offering perfect blend of space, technology, and efficiency for German road trips throughout ${now.getFullYear()}.`,
-        url: "https://www.tesla.com/",
-        publishedAt: now.toISOString(),
-      },
-      {
-        title: `Tesla Battery Technology Advances Enhance Long-Distance Travel in ${now.getFullYear()}`,
-        description:
-          `Recent improvements in Tesla's battery technology and range capabilities make long-distance road trips through Germany more practical and enjoyable for renters.`,
-        url: "https://www.tesla.com/",
-        publishedAt: now.toISOString(),
-      },
-      {
-        title: `German EV Infrastructure Growth Supports Tesla Rental Market in ${now.getFullYear()}`,
-        description:
-          `The expanding network of charging stations across Germany, combined with Tesla's Supercharger expansion, creates ideal conditions for electric vehicle rentals.`,
-        url: "https://www.tesla.com/",
-        publishedAt: now.toISOString(),
-      },
-    ];
-    
-    // Rotate topics based on day of year
-    const topicIndex = dayOfYear % staticTopics.length;
-    return [staticTopics[topicIndex]];
+    // Step 3: Use AI to analyze and select the best articles
+    console.log("\n🤖 Using AI to analyze and select best articles...");
+    const selectedArticles = await analyzeAndSelectNewsArticles(
+      uniqueArticles,
+      apiKey,
+      existingBlogPosts
+    );
+
+    if (selectedArticles.length > 0) {
+      console.log(`   ✅ AI selected ${selectedArticles.length} best articles`);
+      selectedArticles.forEach((a, i) => {
+        console.log(`      ${i + 1}. "${a.title?.substring(0, 80)}..."`);
+      });
+      return selectedArticles;
+    }
+
+    // Final fallback: return first few articles
+    console.log("   ⚠️  Using first recent articles as fallback");
+    return uniqueArticles.slice(0, 3);
   } catch (error) {
-    console.log(`⚠️  Error fetching news: ${error.message}`);
-    console.log("   Using fallback topics");
+    console.log(`⚠️  Error in AI-powered news fetch: ${error.message}`);
+    console.log("   Using date-based fallback topics");
+    
+    // Date-based fallback that's actually unique
     const now = new Date();
-    return [
-      {
-        title:
-          `Tesla Innovation Continues to Transform Electric Vehicle Industry in ${now.getFullYear()}`,
-        description:
-          `Latest Tesla developments showcase why electric vehicles are the future of sustainable travel in Germany.`,
-        url: "https://www.tesla.com/",
-        publishedAt: now.toISOString(),
-      },
+    const dayOfYear = Math.floor(
+      (now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24
+    );
+    
+    const fallbackTopics = [
+      `Tesla Model Y ${now.getFullYear()} Updates and New Features`,
+      `Electric Vehicle Charging Infrastructure Expansion in Germany ${now.getFullYear()}`,
+      `Tesla Autopilot and Full Self-Driving Updates ${now.getFullYear()}`,
+      `Battery Technology Advances in Electric Vehicles ${now.getFullYear()}`,
+      `Tesla Production and Delivery Milestones ${now.getFullYear()}`,
     ];
+    
+    const topicIndex = dayOfYear % fallbackTopics.length;
+    return [{
+      title: fallbackTopics[topicIndex],
+      description: `Latest developments in Tesla and electric vehicle technology that enhance the rental experience for travelers in Germany.`,
+      url: "https://www.tesla.com/",
+      publishedAt: now.toISOString(),
+    }];
   }
 }
 
@@ -1557,76 +1693,13 @@ async function generateBlogPost() {
     existingBlogPosts = JSON.parse(fileContent);
   }
 
-  // Fetch recent Tesla/Elon Musk news
-  console.log(`📰 Fetching recent Tesla/Elon Musk news...`);
-  let recentNews = await fetchRecentTeslaNews();
+  // Fetch recent Tesla/Elon Musk news using AI-powered search
+  console.log(`📰 Fetching recent Tesla/Elon Musk news using AI...`);
+  let recentNews = await fetchRecentTeslaNews(AI_API_KEY, existingBlogPosts);
 
-  // Check if news articles have already been covered
   if (recentNews.length > 0) {
-    console.log(`✅ Found ${recentNews.length} recent news articles`);
-
-    // Filter out news that's already been covered (less aggressive filtering)
-    const filteredNews = recentNews.filter((article) => {
-      // Check if this article title is too similar to any existing post
-      const articleTitle = article.title.toLowerCase().trim();
-      const alreadyCovered = existingBlogPosts.some((post) => {
-        const postTitle = post.title.toLowerCase().trim();
-        
-        // First check: Exact match or very close match (80%+ similarity)
-        if (articleTitle === postTitle) {
-          return true;
-        }
-        
-        // Second check: Check if it's the same article URL (if available)
-        if (article.url && post.url && article.url === post.url) {
-          return true;
-        }
-        
-        // Third check: Only filter if titles are VERY similar (70%+ word overlap)
-        // This is more lenient than before (was 40%)
-        const articleWords = articleTitle
-          .split(/\s+/)
-          .filter((w) => w.length > 3)
-          .map(w => w.replace(/[^\w]/g, '')); // Remove punctuation
-        const postWords = postTitle
-          .split(/\s+/)
-          .filter((w) => w.length > 3)
-          .map(w => w.replace(/[^\w]/g, ''));
-        
-        if (articleWords.length === 0 || postWords.length === 0) {
-          return false; // Can't compare if no words
-        }
-        
-        const sharedWords = articleWords.filter((w) => postWords.includes(w));
-        const similarity = sharedWords.length / Math.max(articleWords.length, postWords.length);
-        
-        // Only filter if 70%+ similar (much more lenient)
-        return similarity > 0.7;
-      });
-      return !alreadyCovered;
-    });
-
-    if (filteredNews.length < recentNews.length) {
-      console.log(
-        `🔍 Filtered out ${recentNews.length - filteredNews.length} already-covered articles (${filteredNews.length} remaining)`
-      );
-    }
-
-    recentNews = filteredNews;
-
-    if (recentNews.length > 0) {
-      console.log(`📰 Top new article: ${recentNews[0].title}`);
-      // Show a few more for context
-      if (recentNews.length > 1) {
-        console.log(`   Also found ${recentNews.length - 1} other unique articles`);
-      }
-    } else {
-      console.log(
-        `⚠️  All recent news already covered, falling back to general Tesla topics`
-      );
-      // Use fallback topics
-      recentNews = [];
-    }
+    console.log(`✅ AI found ${recentNews.length} unique, interesting articles`);
+    console.log(`📰 Top article: ${recentNews[0].title?.substring(0, 100)}...`);
   } else {
     console.log(`⚠️  No recent news found, using general Tesla topics`);
   }
