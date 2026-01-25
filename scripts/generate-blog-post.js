@@ -248,19 +248,64 @@ async function parseGoogleNewsRSS(rssXml) {
   }
 }
 
+// Generate diverse news queries based on date/time to get different articles
+function getDiverseNewsQuery() {
+  const now = new Date();
+  const dayOfYear = Math.floor(
+    (now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24
+  );
+  const hour = now.getHours();
+  
+  // Rotate through different query variations to get diverse results
+  const queryVariations = [
+    'Tesla Model Y OR "Tesla Model 3" OR "Tesla Cybertruck"',
+    '"Tesla Supercharger" OR "EV charging network" OR "electric vehicle infrastructure"',
+    '"Elon Musk" OR "Tesla stock" OR "TSLA"',
+    '"electric vehicles" OR "EV adoption" OR "battery technology"',
+    '"Tesla Autopilot" OR "Full Self Driving" OR "FSD"',
+    '"Tesla production" OR "Gigafactory" OR "Tesla manufacturing"',
+    '"Tesla delivery" OR "Tesla sales" OR "EV market share"',
+    '"Tesla software" OR "Tesla update" OR "over-the-air update"',
+    '"Tesla energy" OR "Powerwall" OR "solar roof"',
+    '"Tesla service" OR "Tesla maintenance" OR "EV repair"',
+    '"Tesla range" OR "battery range" OR "EV efficiency"',
+    '"Tesla design" OR "Tesla interior" OR "Tesla features"',
+    '"Tesla price" OR "Tesla cost" OR "EV affordability"',
+    '"Tesla safety" OR "Tesla crash test" OR "EV safety"',
+    '"Tesla charging" OR "fast charging" OR "DC fast charge"',
+  ];
+  
+  // Use day of year and hour to select different queries
+  const queryIndex = (dayOfYear * 2 + Math.floor(hour / 12)) % queryVariations.length;
+  return queryVariations[queryIndex];
+}
+
 // Fetch recent Tesla/Elon Musk news from multiple sources
 async function fetchRecentTeslaNews() {
   try {
+    const now = new Date();
+    const dayOfYear = Math.floor(
+      (now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24
+    );
+    
     // Try NewsAPI first (if API key exists)
     const newsApiKey = process.env.NEWS_API_KEY;
     let articles = [];
 
     if (newsApiKey) {
       console.log("   Trying NewsAPI...");
-      const query = encodeURIComponent(
-        'Tesla OR "Elon Musk" OR "electric vehicles" OR "EV charging"'
-      );
-      const url = `https://newsapi.org/v2/everything?q=${query}&language=en&sortBy=publishedAt&pageSize=10&apiKey=${newsApiKey}`;
+      
+      // Use diverse query and add date range to get fresh articles
+      const query = getDiverseNewsQuery();
+      const fromDate = new Date(now);
+      fromDate.setDate(fromDate.getDate() - 7); // Last 7 days
+      const fromDateStr = fromDate.toISOString().split('T')[0];
+      
+      const encodedQuery = encodeURIComponent(query);
+      const url = `https://newsapi.org/v2/everything?q=${encodedQuery}&language=en&sortBy=publishedAt&from=${fromDateStr}&pageSize=20&apiKey=${newsApiKey}`;
+      
+      console.log(`   Query: ${query}`);
+      console.log(`   Date range: Last 7 days`);
 
       articles = await new Promise((resolve) => {
         https
@@ -273,16 +318,22 @@ async function fetchRecentTeslaNews() {
               try {
                 const parsed = JSON.parse(data);
                 if (parsed.articles && parsed.articles.length > 0) {
-                  resolve(parsed.articles.slice(0, 5));
+                  // Shuffle articles to get variety, then take first 10
+                  const shuffled = parsed.articles.sort(() => Math.random() - 0.5);
+                  resolve(shuffled.slice(0, 10));
                 } else {
                   resolve([]);
                 }
               } catch (e) {
+                console.log(`   ⚠️  NewsAPI parse error: ${e.message}`);
                 resolve([]);
               }
             });
           })
-          .on("error", () => resolve([]));
+          .on("error", (err) => {
+            console.log(`   ⚠️  NewsAPI request error: ${err.message}`);
+            resolve([]);
+          });
       });
 
       if (articles.length > 0) {
@@ -293,8 +344,14 @@ async function fetchRecentTeslaNews() {
 
     // Fallback 1: Google News RSS (FREE - no API key needed!)
     console.log("   Trying Google News RSS...");
+    
+    // Use diverse query for Google News too
+    const googleQuery = getDiverseNewsQuery().replace(/"/g, '').replace(/\s+/g, '+');
     const googleNewsUrl =
-      "https://news.google.com/rss/search?q=Tesla+OR+%22Elon+Musk%22+OR+%22electric+vehicles%22&hl=en&gl=US&ceid=US:en&num=10";
+      `https://news.google.com/rss/search?q=${googleQuery}&hl=en&gl=US&ceid=US:en&num=20&when=7d`;
+
+    console.log(`   Query: ${getDiverseNewsQuery()}`);
+    console.log(`   Time range: Last 7 days`);
 
     articles = await new Promise((resolve) => {
       https
@@ -305,53 +362,79 @@ async function fetchRecentTeslaNews() {
           });
           res.on("end", async () => {
             const parsed = await parseGoogleNewsRSS(data);
-            resolve(parsed);
+            // Shuffle for variety
+            const shuffled = parsed.sort(() => Math.random() - 0.5);
+            resolve(shuffled);
           });
         })
-        .on("error", () => resolve([]));
+        .on("error", (err) => {
+          console.log(`   ⚠️  Google News RSS error: ${err.message}`);
+          resolve([]);
+        });
     });
 
     if (articles.length > 0) {
       console.log(`   ✅ Google News RSS returned ${articles.length} articles`);
-      return articles.slice(0, 5);
+      return articles.slice(0, 10);
     }
 
-    // Fallback 2: Static recent topics (last resort)
-    console.log("   Using static Tesla topics as last resort");
-    return [
+    // Fallback 2: Date-based static topics (last resort)
+    console.log("   Using date-based Tesla topics as last resort");
+    
+    // Create date-based variations of topics
+    const staticTopics = [
       {
-        title:
-          "Tesla Supercharger Network Continues Rapid Expansion Across Europe",
+        title: `Tesla Supercharger Network Expansion Accelerates Across Europe in ${now.getFullYear()}`,
         description:
-          "Tesla's commitment to expanding its Supercharger network makes EV travel more accessible across Europe, particularly in Germany where infrastructure growth is accelerating.",
+          `Tesla's commitment to expanding its Supercharger network makes EV travel more accessible across Europe, particularly in Germany where infrastructure growth is accelerating in ${now.getFullYear()}.`,
         url: "https://www.tesla.com/",
-        publishedAt: new Date().toISOString(),
+        publishedAt: now.toISOString(),
       },
       {
-        title: "Electric Vehicle Adoption Reaches Record Highs in Germany",
+        title: `Electric Vehicle Adoption Reaches New Heights in Germany This ${now.toLocaleString('en-US', { month: 'long' })}`,
         description:
-          "Germany sees unprecedented growth in electric vehicle adoption, with Tesla leading the charge as American travelers increasingly choose EVs for their European adventures.",
+          `Germany sees unprecedented growth in electric vehicle adoption, with Tesla leading the charge as American travelers increasingly choose EVs for their European adventures in ${now.getFullYear()}.`,
         url: "https://www.tesla.com/",
-        publishedAt: new Date().toISOString(),
+        publishedAt: now.toISOString(),
       },
       {
-        title: "Tesla Model Y Continues to Dominate European EV Market",
+        title: `Tesla Model Y Continues to Lead European EV Market in ${now.getFullYear()}`,
         description:
-          "The Tesla Model Y remains the top choice for travelers and residents alike, offering perfect blend of space, technology, and efficiency for German road trips.",
+          `The Tesla Model Y remains the top choice for travelers and residents alike, offering perfect blend of space, technology, and efficiency for German road trips throughout ${now.getFullYear()}.`,
         url: "https://www.tesla.com/",
-        publishedAt: new Date().toISOString(),
+        publishedAt: now.toISOString(),
+      },
+      {
+        title: `Tesla Battery Technology Advances Enhance Long-Distance Travel in ${now.getFullYear()}`,
+        description:
+          `Recent improvements in Tesla's battery technology and range capabilities make long-distance road trips through Germany more practical and enjoyable for renters.`,
+        url: "https://www.tesla.com/",
+        publishedAt: now.toISOString(),
+      },
+      {
+        title: `German EV Infrastructure Growth Supports Tesla Rental Market in ${now.getFullYear()}`,
+        description:
+          `The expanding network of charging stations across Germany, combined with Tesla's Supercharger expansion, creates ideal conditions for electric vehicle rentals.`,
+        url: "https://www.tesla.com/",
+        publishedAt: now.toISOString(),
       },
     ];
+    
+    // Rotate topics based on day of year
+    const topicIndex = dayOfYear % staticTopics.length;
+    return [staticTopics[topicIndex]];
   } catch (error) {
-    console.log("⚠️  Error fetching news, using fallback topics");
+    console.log(`⚠️  Error fetching news: ${error.message}`);
+    console.log("   Using fallback topics");
+    const now = new Date();
     return [
       {
         title:
-          "Tesla Innovation Continues to Transform Electric Vehicle Industry",
+          `Tesla Innovation Continues to Transform Electric Vehicle Industry in ${now.getFullYear()}`,
         description:
-          "Latest Tesla developments showcase why electric vehicles are the future of sustainable travel in Germany.",
+          `Latest Tesla developments showcase why electric vehicles are the future of sustainable travel in Germany.`,
         url: "https://www.tesla.com/",
-        publishedAt: new Date().toISOString(),
+        publishedAt: now.toISOString(),
       },
     ];
   }
@@ -1482,30 +1565,50 @@ async function generateBlogPost() {
   if (recentNews.length > 0) {
     console.log(`✅ Found ${recentNews.length} recent news articles`);
 
-    // Filter out news that's already been covered
+    // Filter out news that's already been covered (less aggressive filtering)
     const filteredNews = recentNews.filter((article) => {
       // Check if this article title is too similar to any existing post
-      const articleTitle = article.title.toLowerCase();
+      const articleTitle = article.title.toLowerCase().trim();
       const alreadyCovered = existingBlogPosts.some((post) => {
-        const postTitle = post.title.toLowerCase();
-        // Simple similarity check - if titles share significant words
+        const postTitle = post.title.toLowerCase().trim();
+        
+        // First check: Exact match or very close match (80%+ similarity)
+        if (articleTitle === postTitle) {
+          return true;
+        }
+        
+        // Second check: Check if it's the same article URL (if available)
+        if (article.url && post.url && article.url === post.url) {
+          return true;
+        }
+        
+        // Third check: Only filter if titles are VERY similar (70%+ word overlap)
+        // This is more lenient than before (was 40%)
         const articleWords = articleTitle
-          .split(" ")
-          .filter((w) => w.length > 4);
-        const postWords = postTitle.split(" ").filter((w) => w.length > 4);
+          .split(/\s+/)
+          .filter((w) => w.length > 3)
+          .map(w => w.replace(/[^\w]/g, '')); // Remove punctuation
+        const postWords = postTitle
+          .split(/\s+/)
+          .filter((w) => w.length > 3)
+          .map(w => w.replace(/[^\w]/g, ''));
+        
+        if (articleWords.length === 0 || postWords.length === 0) {
+          return false; // Can't compare if no words
+        }
+        
         const sharedWords = articleWords.filter((w) => postWords.includes(w));
-        // If more than 40% of significant words match, consider it duplicate
-        return (
-          sharedWords.length >
-          Math.min(articleWords.length, postWords.length) * 0.4
-        );
+        const similarity = sharedWords.length / Math.max(articleWords.length, postWords.length);
+        
+        // Only filter if 70%+ similar (much more lenient)
+        return similarity > 0.7;
       });
       return !alreadyCovered;
     });
 
     if (filteredNews.length < recentNews.length) {
       console.log(
-        `🔍 Filtered out ${recentNews.length - filteredNews.length} already-covered articles`
+        `🔍 Filtered out ${recentNews.length - filteredNews.length} already-covered articles (${filteredNews.length} remaining)`
       );
     }
 
@@ -1513,6 +1616,10 @@ async function generateBlogPost() {
 
     if (recentNews.length > 0) {
       console.log(`📰 Top new article: ${recentNews[0].title}`);
+      // Show a few more for context
+      if (recentNews.length > 1) {
+        console.log(`   Also found ${recentNews.length - 1} other unique articles`);
+      }
     } else {
       console.log(
         `⚠️  All recent news already covered, falling back to general Tesla topics`
