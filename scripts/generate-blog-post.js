@@ -431,148 +431,109 @@ Return ONLY the JSON, nothing else.`;
 }
 
 // Fetch recent Tesla/Elon Musk news using AI-powered search
+// Use ChatGPT to identify current/recent Tesla news topics based on its knowledge
 async function fetchRecentTeslaNews(apiKey, existingBlogPosts = []) {
   try {
+    if (!apiKey) {
+      throw new Error("OpenAI API key is required");
+    }
+    
+    const OpenAI = (await import("openai")).default;
+    const openai = new OpenAI({ apiKey });
+    
     const now = new Date();
-    console.log("🤖 Using AI to generate smart search queries...");
+    const dateStr = now.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
     
-    // Step 1: Use AI to generate diverse, specific search queries
-    const searchQueries = await generateAISearchQueries(apiKey);
-    console.log(`   ✅ Generated ${searchQueries.length} AI-powered search queries`);
-    searchQueries.forEach((q, i) => console.log(`      ${i + 1}. "${q}"`));
+    // Get existing post titles to avoid duplicates
+    const existingTitles = existingBlogPosts
+      .slice(0, 50)
+      .map(post => post.title.toLowerCase())
+      .join('\n');
+    
+    console.log("🤖 Using ChatGPT to identify current Tesla news topics...");
+    
+    const prompt = `Today is ${dateStr}. Based on your knowledge of recent Tesla, electric vehicle, and Elon Musk news (from the last 30 days), identify 3-5 CURRENT and INTERESTING news topics that would make great blog post subjects.
 
-    // Step 2: Search Google News RSS with all queries (parallel)
-    console.log("\n📰 Searching Google News with AI-generated queries...");
-    const allArticles = [];
-    const searchPromises = searchQueries.map(async (query) => {
-      const encodedQuery = encodeURIComponent(query.replace(/"/g, ''));
-      const googleNewsUrl = `https://news.google.com/rss/search?q=${encodedQuery}&hl=en&gl=US&ceid=US:en&num=10&when=7d`;
+EXISTING BLOG POST TITLES (avoid similar topics):
+${existingTitles || 'None'}
 
-      return new Promise((resolve) => {
-        https
-          .get(googleNewsUrl, (res) => {
-            let data = "";
-            res.on("data", (chunk) => {
-              data += chunk;
-            });
-            res.on("end", async () => {
-              try {
-                const parsed = await parseGoogleNewsRSS(data);
-                resolve(parsed || []);
-              } catch (e) {
-                console.log(`   ⚠️  Error parsing RSS for "${query}": ${e.message}`);
-                resolve([]);
-              }
-            });
-          })
-          .on("error", (err) => {
-            console.log(`   ⚠️  Error fetching "${query}": ${err.message}`);
-            resolve([]);
-          });
-      });
+Requirements:
+1. Topics must be based on REAL, RECENT news (last 30 days) - not generic topics
+2. Each topic should be UNIQUE and different from existing blog posts
+3. Topics should be INTERESTING and NEWSWORTHY (not generic announcements)
+4. Should cover different aspects: technology, business, infrastructure, features, market, etc.
+5. Should be relevant to Tesla rentals in Germany (or can be connected to it)
+6. Make topics specific and detailed (not just "Tesla news")
+
+Return a JSON object with:
+{
+  "topics": [
+    {
+      "title": "Specific news headline/topic",
+      "description": "Brief description of the news (2-3 sentences)",
+      "publishedAt": "ISO date string (use recent date within last 30 days)"
+    }
+  ]
+}
+
+Return ONLY the JSON object, nothing else.`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a news research assistant with up-to-date knowledge of Tesla and electric vehicle news. Identify current, interesting news topics based on recent developments. Always return valid JSON objects.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.9,
+      max_tokens: 1000,
     });
 
-    const searchResults = await Promise.all(searchPromises);
+    const response = JSON.parse(completion.choices[0].message.content);
     
-    // Combine and deduplicate articles
-    const articleMap = new Map();
-    searchResults.flat().forEach(article => {
-      if (article.title && article.url) {
-        // Use URL as key for deduplication
-        const key = article.url.toLowerCase();
-        if (!articleMap.has(key)) {
-          articleMap.set(key, article);
-        }
-      }
+    let topics = [];
+    if (response.topics && Array.isArray(response.topics)) {
+      topics = response.topics;
+    } else if (response.topic && Array.isArray(response.topic)) {
+      topics = response.topic;
+    }
+    
+    if (topics.length === 0) {
+      throw new Error("No topics returned from ChatGPT");
+    }
+    
+    // Convert topics to article format
+    const articles = topics.map(topic => ({
+      title: topic.title || topic.headline || '',
+      description: topic.description || '',
+      url: topic.url || "https://www.tesla.com/",
+      publishedAt: topic.publishedAt || now.toISOString(),
+    })).filter(article => article.title);
+    
+    if (articles.length === 0) {
+      throw new Error("No valid articles generated");
+    }
+    
+    console.log(`   ✅ ChatGPT identified ${articles.length} current news topics`);
+    articles.forEach((a, i) => {
+      console.log(`      ${i + 1}. "${a.title}"`);
     });
-
-    const uniqueArticles = Array.from(articleMap.values());
-    console.log(`   ✅ Found ${uniqueArticles.length} unique articles from searches`);
-
-    if (uniqueArticles.length === 0) {
-      // Try NewsAPI as fallback if available
-      const newsApiKey = process.env.NEWS_API_KEY;
-      if (newsApiKey) {
-        console.log("   Trying NewsAPI as fallback...");
-        const fromDate = new Date(now);
-        fromDate.setDate(fromDate.getDate() - 7);
-        const fromDateStr = fromDate.toISOString().split('T')[0];
-        const query = searchQueries[0] || 'Tesla';
-        const encodedQuery = encodeURIComponent(query);
-        const url = `https://newsapi.org/v2/everything?q=${encodedQuery}&language=en&sortBy=publishedAt&from=${fromDateStr}&pageSize=20&apiKey=${newsApiKey}`;
-
-        const newsApiArticles = await new Promise((resolve) => {
-          https
-            .get(url, (res) => {
-              let data = "";
-              res.on("data", (chunk) => { data += chunk; });
-              res.on("end", () => {
-                try {
-                  const parsed = JSON.parse(data);
-                  resolve(parsed.articles || []);
-                } catch (e) {
-                  resolve([]);
-                }
-              });
-            })
-            .on("error", () => resolve([]));
-        });
-
-        if (newsApiArticles.length > 0) {
-          console.log(`   ✅ NewsAPI returned ${newsApiArticles.length} articles`);
-          uniqueArticles.push(...newsApiArticles);
-        }
-      }
-    }
-
-    if (uniqueArticles.length === 0) {
-      throw new Error("No articles found from any source");
-    }
-
-    // Step 3: Use AI to analyze and select the best articles
-    console.log("\n🤖 Using AI to analyze and select best articles...");
-    const selectedArticles = await analyzeAndSelectNewsArticles(
-      uniqueArticles,
-      apiKey,
-      existingBlogPosts
-    );
-
-    if (selectedArticles.length > 0) {
-      console.log(`   ✅ AI selected ${selectedArticles.length} best articles`);
-      selectedArticles.forEach((a, i) => {
-        console.log(`      ${i + 1}. "${a.title?.substring(0, 80)}..."`);
-      });
-      return selectedArticles;
-    }
-
-    // Final fallback: return first few articles
-    console.log("   ⚠️  Using first recent articles as fallback");
-    return uniqueArticles.slice(0, 3);
+    
+    return articles;
   } catch (error) {
-    console.log(`⚠️  Error in AI-powered news fetch: ${error.message}`);
-    console.log("   Using date-based fallback topics");
-    
-    // Date-based fallback that's actually unique
-    const now = new Date();
-    const dayOfYear = Math.floor(
-      (now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24
-    );
-    
-    const fallbackTopics = [
-      `Tesla Model Y ${now.getFullYear()} Updates and New Features`,
-      `Electric Vehicle Charging Infrastructure Expansion in Germany ${now.getFullYear()}`,
-      `Tesla Autopilot and Full Self-Driving Updates ${now.getFullYear()}`,
-      `Battery Technology Advances in Electric Vehicles ${now.getFullYear()}`,
-      `Tesla Production and Delivery Milestones ${now.getFullYear()}`,
-    ];
-    
-    const topicIndex = dayOfYear % fallbackTopics.length;
-    return [{
-      title: fallbackTopics[topicIndex],
-      description: `Latest developments in Tesla and electric vehicle technology that enhance the rental experience for travelers in Germany.`,
-      url: "https://www.tesla.com/",
-      publishedAt: now.toISOString(),
-    }];
+    console.log(`⚠️  Error getting news from ChatGPT: ${error.message}`);
+    throw error; // Don't fallback - let the caller handle it
   }
 }
 
@@ -1693,15 +1654,20 @@ async function generateBlogPost() {
     existingBlogPosts = JSON.parse(fileContent);
   }
 
-  // Fetch recent Tesla/Elon Musk news using AI-powered search
-  console.log(`📰 Fetching recent Tesla/Elon Musk news using AI...`);
-  let recentNews = await fetchRecentTeslaNews(AI_API_KEY, existingBlogPosts);
-
-  if (recentNews.length > 0) {
-    console.log(`✅ AI found ${recentNews.length} unique, interesting articles`);
-    console.log(`📰 Top article: ${recentNews[0].title?.substring(0, 100)}...`);
-  } else {
-    console.log(`⚠️  No recent news found, using general Tesla topics`);
+  // Get current Tesla news topics from ChatGPT
+  console.log(`📰 Getting current Tesla news topics from ChatGPT...`);
+  let recentNews = [];
+  
+  try {
+    recentNews = await fetchRecentTeslaNews(AI_API_KEY, existingBlogPosts);
+    if (recentNews.length > 0) {
+      console.log(`✅ ChatGPT found ${recentNews.length} current news topics`);
+      console.log(`📰 Top topic: ${recentNews[0].title?.substring(0, 100)}...`);
+    }
+  } catch (error) {
+    console.log(`⚠️  Failed to get news from ChatGPT: ${error.message}`);
+    console.log(`   Will generate blog post without specific news context`);
+    recentNews = [];
   }
 
   console.log(`👤 Author: ${author}`);
