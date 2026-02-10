@@ -7,27 +7,33 @@
         xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
   <url>
     <loc>https://voltvoyages.io/</loc>
-    <lastmod>2026-02-10T02:59:57.525Z</lastmod>
+    <lastmod>2026-02-10T14:35:30.317Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/impressum</loc>
-    <lastmod>2026-02-10T02:59:57.525Z</lastmod>
+    <lastmod>2026-02-10T14:35:30.317Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/privacy-policy</loc>
-    <lastmod>2026-02-10T02:59:57.525Z</lastmod>
+    <lastmod>2026-02-10T14:35:30.317Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/terms-of-service</loc>
-    <lastmod>2026-02-10T02:59:57.525Z</lastmod>
+    <lastmod>2026-02-10T14:35:30.317Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://voltvoyages.io/blog-posts/tesla-partnerships-incentives-model-y-rental-germany</loc>
+    <lastmod>2026-02-10T14:33:59.368Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/blog-posts/tesla-ai-pricing-care-expansion-model-y-rental-germany</loc>
