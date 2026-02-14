@@ -7,27 +7,33 @@
         xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
   <url>
     <loc>https://voltvoyages.io/</loc>
-    <lastmod>2026-02-13T14:22:58.186Z</lastmod>
+    <lastmod>2026-02-14T02:54:50.712Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/impressum</loc>
-    <lastmod>2026-02-13T14:22:58.186Z</lastmod>
+    <lastmod>2026-02-14T02:54:50.712Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/privacy-policy</loc>
-    <lastmod>2026-02-13T14:22:58.186Z</lastmod>
+    <lastmod>2026-02-14T02:54:50.712Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/terms-of-service</loc>
-    <lastmod>2026-02-13T14:22:58.186Z</lastmod>
+    <lastmod>2026-02-14T02:54:50.712Z</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://voltvoyages.io/blog-posts/tesla-model-y-rental-germany-news-updates-2026</loc>
+    <lastmod>2026-02-14T02:53:07.054Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://voltvoyages.io/blog-posts/tesla-model-y-variant-germany-rental-2026</loc>
